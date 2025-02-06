@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, Response
 import json
+import os
 from datetime import datetime
+import requests
 from utils.text_processor import split_text
 from utils.chat_storage import (
     create_new_conversation,
@@ -19,6 +21,11 @@ MODEL_NAME = "gemma2:2b"
 def home():
     conversations = get_conversation_history()
     return render_template('index.html', conversations=conversations)
+
+@app.route('/get_conversation_history')
+def conversation_history():
+    conversations = get_conversation_history()
+    return jsonify(conversations)
 
 @app.route('/get_conversation/<conversation_id>')
 def get_conversation(conversation_id):

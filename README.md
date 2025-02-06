@@ -1,69 +1,66 @@
-# Welcome to your Lovable project
+# Projeto Guilherme – Clone de IA Conversacional
 
-## Project info
+## Introdução
+O Projeto Guilherme é um sistema de inteligência artificial conversacional inspirado no OpenWebUI. O objetivo principal é criar uma interface de chat interativa e persistente, semelhante ao ChatGPT. O projeto foi desenvolvido com foco na simplicidade e eficiência, eliminando a necessidade de um banco de dados tradicional para armazenamento de histórico.
 
-**URL**: https://lovable.dev/projects/3656cd2d-c5a9-4996-843b-c71dc816d904
+## Objetivo do Projeto
+O objetivo é oferecer uma IA conversacional independente, capaz de interagir com os usuários de forma natural. O histórico das conversas será armazenado em arquivos JSON individuais, garantindo a persistência dos dados entre recarregamentos da página.
 
-## How can I edit this code?
+## Tecnologias Utilizadas
+- **Flask (Python)** → Backend leve e eficiente para gerenciar as requisições e a lógica do chat.
+- **JavaScript, HTML5, CSS** → Construção da interface de usuário responsiva e dinâmica.
+- **Armazenamento em JSON** → Cada conversa será salva em um arquivo separado dentro do diretório `data/`.
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/3656cd2d-c5a9-4996-843b-c71dc816d904) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## Estrutura do Projeto
+```
+Projeto Guilherme/
+├── app.py                     # Aplicação principal
+├── static/
+│   ├── css/                   # Estilos
+│   ├── js/                    # Lógica frontend
+├── templates/
+│   ├── index.html             # Interface principal
+├── utils/
+│   ├── chat_storage.py        # Gerenciamento de histórico em arquivos JSON
+│   ├── text_processor.py      # Utilitários para processamento de texto
+├── data/                      # Diretório para armazenar os arquivos JSON das conversas
+└── requirements.txt           # Lista de dependências do projeto
 ```
 
-**Edit a file directly in GitHub**
+## Como Executar o Projeto
+### 1. Clonar o Repositório
+```bash
+git clone https://github.com/seu-usuario/chat-ai.git
+cd chat-ai
+```
+### 2. Configurar o Ambiente Virtual
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/MacOS
+venv\Scripts\activate     # Windows
+```
+### 3. Instalar Dependências
+```bash
+pip install -r requirements.txt
+```
+### 4. Executar o Servidor
+```bash
+python app.py
+```
+O servidor será iniciado localmente e estará disponível em `http://127.0.0.1:5000/`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Funcionalidades
+✅ Interface de chat interativa
+✅ Histórico de conversa salvo em arquivos JSON
+✅ Persistência do histórico entre recarregamentos da página
+✅ Processamento de mensagens e resposta dinâmica
 
-**Use GitHub Codespaces**
+## Status Atual
+🚀 O projeto está em fase de desenvolvimento, com funcionalidades básicas implementadas e melhorias em andamento.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Contribuição
+Se desejar contribuir, sinta-se à vontade para abrir issues e pull requests no repositório!
 
-## What technologies are used for this project?
+## Licença
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/3656cd2d-c5a9-4996-843b-c71dc816d904) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)

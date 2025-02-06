@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, jsonify, Response
 import json
 from datetime import datetime
-import requests
 from utils.text_processor import split_text
-from utils.chat_history import save_conversation, get_conversation_history
+from utils.chat_storage import (
+    create_new_conversation,
+    add_message_to_conversation,
+    get_conversation_by_id,
+    get_conversation_history
+)
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sua_chave_secreta_aqui'
@@ -14,8 +18,6 @@ MODEL_NAME = "gemma2:2b"
 @app.route('/')
 def home():
     conversations = get_conversation_history()
-    if not conversations:
-        conversations = []
     return render_template('index.html', conversations=conversations)
 
 @app.route('/get_conversation/<conversation_id>')
@@ -31,6 +33,13 @@ def send_message():
     message = data.get('message', '')
     conversation_id = data.get('conversation_id')
 
+    if not conversation_id:
+        conversation_id = create_new_conversation()
+
+    # Salvar mensagem do usuário
+    add_message_to_conversation(conversation_id, message, "user")
+
+    # Processar resposta da IA
     if len(message.split()) > 300:
         chunks = split_text(message)
         responses = []
@@ -39,23 +48,17 @@ def send_message():
             responses.append(response)
         final_response = " ".join(responses)
     else:
-        final_response = None  # Streaming será usado para mensagens menores
+        final_response = None  # Streaming será usado
 
     def generate_streamed_response():
         for part in process_with_ai_stream(message):
-            yield f"data: {json.dumps({'content': part})}\n\n"
+            if part:
+                # Salvar resposta da IA
+                add_message_to_conversation(conversation_id, part, "assistant")
+                yield f"data: {json.dumps({'content': part})}\n\n"
 
-    # Configura streaming para mensagens
     response = Response(generate_streamed_response(), content_type="text/event-stream")
     response.headers['Cache-Control'] = 'no-cache'
-
-    # Atualizar o histórico após streaming
-    if final_response is not None:
-        if not conversation_id:
-            conversation_id = save_conversation(message, final_response)
-        else:
-            save_conversation(message, final_response, conversation_id)
-
     return response
 
 def process_with_ai(text):

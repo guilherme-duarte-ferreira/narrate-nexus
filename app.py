@@ -47,22 +47,18 @@ def send_message():
     add_message_to_conversation(conversation_id, message, "user")
 
     # Processar resposta da IA
-    if len(message.split()) > 300:
-        chunks = split_text(message)
-        responses = []
-        for chunk in chunks:
-            response = process_with_ai(chunk)
-            responses.append(response)
-        final_response = " ".join(responses)
-    else:
-        final_response = None  # Streaming será usado
-
+    accumulated_response = []
+    
     def generate_streamed_response():
         for part in process_with_ai_stream(message):
             if part:
-                # Salvar resposta da IA
-                add_message_to_conversation(conversation_id, part, "assistant")
+                accumulated_response.append(part)
                 yield f"data: {json.dumps({'content': part})}\n\n"
+        
+        # Salvar a resposta completa da IA
+        if accumulated_response:
+            complete_response = ''.join(accumulated_response)
+            add_message_to_conversation(conversation_id, complete_response, "assistant")
 
     response = Response(generate_streamed_response(), content_type="text/event-stream")
     response.headers['Cache-Control'] = 'no-cache'

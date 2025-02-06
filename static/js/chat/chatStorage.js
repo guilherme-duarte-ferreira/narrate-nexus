@@ -22,6 +22,9 @@ export function carregarConversa(id) {
             conversa.messages.forEach(msg => {
                 adicionarMensagem(chatContainer, msg.content, msg.role === 'assistant' ? 'assistant' : 'user');
             });
+
+            // Rolar para a última mensagem
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         })
         .catch(error => console.error('Erro ao carregar conversa:', error));
 }

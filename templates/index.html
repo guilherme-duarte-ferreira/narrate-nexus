@@ -1,12 +1,11 @@
 
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>ChatGPT</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="h-screen flex flex-col">
@@ -23,15 +22,11 @@
             <div class="chat-list">
                 <!-- Lista de conversas será preenchida via JavaScript -->
             </div>
-            <button class="settings-btn">
-                <i class="fas fa-cog"></i>
-                Configurações
-            </button>
         </aside>
 
         <!-- Conteúdo Principal -->
         <main class="main-content">
-            <div class="top-bar">
+            <header class="top-bar">
                 <button class="header-sidebar-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -39,41 +34,41 @@
                     <button class="theme-toggle">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <select class="model-select">
+                    <select class="model-select" style="display: none;">
                         <option value="gemma2:2b">gemma2:2b</option>
                     </select>
                 </div>
-            </div>
+            </header>
 
             <!-- Tela de Boas-vindas -->
             <div class="welcome-screen">
-                <h1>Como posso ajudar?</h1>
+                <h1 class="text-3xl font-semibold mb-6">Como posso ajudar?</h1>
                 <div class="input-container">
-                    <form class="input-box" id="welcome-form">
-                        <textarea id="welcome-input" placeholder="Envie uma mensagem..." rows="1"></textarea>
-                        <button type="submit" class="send-btn">
-                            <i class="fas fa-paper-plane"></i>
+                    <form id="welcome-form" class="flex items-center space-x-2">
+                        <textarea id="welcome-input" class="bg-transparent flex-grow text-white placeholder-gray-400 focus:outline-none rounded-lg p-2" placeholder="Envie uma mensagem" rows="1"></textarea>
+                        <button type="submit" class="send-button">
+                            <i class="fas fa-paper-plane text-black"></i>
                         </button>
                     </form>
                 </div>
-                <div class="button-grid">
-                    <button class="feature-btn">
+                <div class="flex space-x-4 mt-4">
+                    <button class="button flex items-center space-x-2">
                         <i class="fas fa-image text-green-500"></i>
                         <span>Criar imagem</span>
                     </button>
-                    <button class="feature-btn">
+                    <button class="button flex items-center space-x-2">
                         <i class="fas fa-images text-blue-500"></i>
                         <span>Analisar imagens</span>
                     </button>
-                    <button class="feature-btn">
+                    <button class="button flex items-center space-x-2">
                         <i class="fas fa-code text-purple-500"></i>
                         <span>Programar</span>
                     </button>
-                    <button class="feature-btn">
+                    <button class="button flex items-center space-x-2">
                         <i class="fas fa-align-left text-orange-500"></i>
                         <span>Resumir texto</span>
                     </button>
-                    <button class="feature-btn">
+                    <button class="button flex items-center space-x-2">
                         <i class="fas fa-ellipsis-h"></i>
                         <span>Mais</span>
                     </button>
@@ -87,19 +82,19 @@
 
             <!-- Container de Input -->
             <div class="input-container" style="display: none;">
-                <form class="input-box" id="chat-form">
-                    <textarea id="chat-input" placeholder="Digite sua mensagem..." rows="1"></textarea>
-                    <button type="submit" class="send-btn" id="send-btn">
-                        <i class="fas fa-paper-plane"></i>
+                <form id="chat-form" class="flex items-center space-x-2">
+                    <textarea id="chat-input" class="bg-transparent flex-grow text-white placeholder-gray-400 focus:outline-none rounded-lg p-2" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                    <button type="submit" id="send-btn" class="send-button">
+                        <i class="fas fa-paper-plane text-black"></i>
                     </button>
-                    <button type="button" class="stop-btn" id="stop-btn" style="display: none;">
-                        <i class="fas fa-stop"></i>
+                    <button type="button" id="stop-btn" class="send-button" style="display: none;">
+                        <i class="fas fa-stop text-black"></i>
                     </button>
                 </form>
             </div>
             
             <footer class="footer">
-                <p>O ChatGPT pode cometer erros. Considere verificar informações importantes.</p>
+                <p class="text-center text-gray-500 text-sm">O ChatGPT pode cometer erros. Considere verificar informações importantes.</p>
             </footer>
         </main>
     </div>

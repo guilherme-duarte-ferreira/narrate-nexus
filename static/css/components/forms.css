@@ -1,86 +1,50 @@
-.search-box {
-    position: relative;
-    margin-bottom: 1rem;
-}
 
-.search-box input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
+.input-container {
     background-color: var(--input-bg);
-    color: var(--text-primary);
+    border-radius: 20px;
+    padding: 12px;
+    margin: 1rem auto;
+    max-width: 800px;
+    width: 100%;
 }
 
 .input-box {
-    display: flex;
-    gap: 1rem;
-    width: 100%;
-    max-width: 800px;
-    margin-bottom: 2rem;
     position: relative;
+    display: flex;
+    gap: 8px;
 }
 
-.input-box textarea {
+textarea {
     width: 100%;
-    padding: 1rem;
-    padding-right: 3.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    background-color: var(--input-bg);
+    background: transparent;
+    border: none;
     color: var(--text-primary);
-    font-size: 1rem;
     resize: none;
-    min-height: 56px;
-    max-height: 200px;
+    padding: 8px;
+    font-size: 1rem;
     line-height: 1.5;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    min-height: 24px;
 }
 
-.input-box textarea::-webkit-scrollbar {
-    display: none;
+textarea:focus {
+    outline: none;
 }
 
-.input-box .send-btn,
-.input-box .stop-btn {
-    position: absolute;
-    right: 0.75rem;
-    bottom: 0.75rem;
+.send-btn,
+.stop-btn {
     background: transparent;
     border: none;
     color: var(--text-primary);
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
-    transition: all 0.2s;
+    padding: 8px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.2s;
 }
 
-.input-box .send-btn:hover,
-.input-box .stop-btn:hover {
+.send-btn:hover,
+.stop-btn:hover {
     background-color: var(--action-hover);
-}
-
-.input-box .stop-btn {
-    right: 5rem;
-    bottom: 0.5rem;
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    width: 100%;
-    max-width: 600px;
-}
-
-.model-select {
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
-    background-color: var(--input-bg);
-    color: var(--text-primary);
 }

@@ -1,13 +1,14 @@
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    transition: background-color 0.2s, color 0.2s;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    overflow: hidden;
+    line-height: 24px;
+    font-size: 16px;
 }

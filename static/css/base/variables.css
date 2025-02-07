@@ -1,3 +1,4 @@
+
 :root {
     --bg-primary: #f7f7f8;
     --text-primary: #000000;
@@ -16,18 +17,18 @@
 }
 
 [data-theme="dark"] {
-    --bg-primary: #343541;
-    --text-primary: #fff;
-    --text-secondary: rgba(255, 255, 255, 0.7);
+    --bg-primary: #121212;
+    --text-primary: #FFFFFF;
+    --text-secondary: hsla(0, 0%, 100%, 0.8);
     --text-disabled: rgba(255, 255, 255, 0.5);
-    --action-active: #fff;
+    --action-active: #FFFFFF;
     --action-hover: rgba(255, 255, 255, 0.08);
     --action-selected: rgba(255, 255, 255, 0.16);
     --action-disabled: rgba(255, 255, 255, 0.3);
     --action-disabled-background: rgba(255, 255, 255, 0.12);
-    --msg-user: #444654;
-    --msg-bot: #444654;
-    --sidebar-bg: #202123;
-    --input-bg: #40414f;
+    --msg-user: #1E1E1E;
+    --msg-bot: #1E1E1E;
+    --sidebar-bg: #1E1E1E;
+    --input-bg: #2A2A2A;
     --border-color: rgba(255, 255, 255, 0.12);
 }

@@ -1,3 +1,4 @@
+
 /* Reset e variáveis base */
 @import './base/variables.css';
 @import './base/reset.css';
@@ -15,3 +16,95 @@
 /* Temas */
 @import './themes/light-theme.css';
 @import './themes/dark-theme.css';
+
+/* Custom styles from nova interface */
+body {
+    font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+    background-color: #121212;
+}
+
+.header, .footer {
+    background-color: #121212;
+    padding: 1rem;
+    text-align: center;
+}
+
+.main-container {
+    background-color: #1E1E1E;
+}
+
+.input-container {
+    background-color: #1E1E1E;
+    border-radius: 20px;
+    padding: 12px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.feature-btn {
+    background-color: #2A2A2A;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.feature-btn:hover {
+    background-color: #424242;
+}
+
+.send-btn {
+    background-color: #FFFFFF;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+}
+
+.send-btn i {
+    color: #121212;
+}
+
+.footer {
+    margin-top: auto;
+    color: #676767;
+    font-size: 0.875rem;
+}
+
+.model-select {
+    background-color: #2A2A2A;
+    color: #FFFFFF;
+    border: 1px solid #424242;
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+/* Existing theme overrides */
+[data-theme="dark"] {
+    --bg-primary: #121212;
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --msg-user: #2A2A2A;
+    --msg-bot: #1E1E1E;
+    --sidebar-bg: #1E1E1E;
+    --input-bg: #2A2A2A;
+}

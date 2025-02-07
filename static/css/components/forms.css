@@ -12,6 +12,7 @@
     position: relative;
     display: flex;
     gap: 8px;
+    align-items: center;
 }
 
 textarea {
@@ -32,11 +33,12 @@ textarea:focus {
 
 .send-btn,
 .stop-btn {
-    background: transparent;
+    width: 40px;
+    height: 40px;
+    background: #FFFFFF;
     border: none;
-    color: var(--text-primary);
+    color: #000000;
     cursor: pointer;
-    padding: 8px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -46,5 +48,5 @@ textarea:focus {
 
 .send-btn:hover,
 .stop-btn:hover {
-    background-color: var(--action-hover);
+    background-color: #f3f3f3;
 }

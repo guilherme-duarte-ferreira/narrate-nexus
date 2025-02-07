@@ -5,6 +5,11 @@
     flex-direction: column;
     overflow: hidden;
     position: relative;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 0;
 }
 
 .welcome-screen {
@@ -38,8 +43,4 @@
 
 .message.assistant {
     margin-right: auto;
-}
-
-.message p {
-    line-height: 1.5;
 }

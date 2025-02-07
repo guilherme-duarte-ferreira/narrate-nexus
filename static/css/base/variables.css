@@ -1,18 +1,14 @@
 
 :root {
-    --bg-primary: #f7f7f8;
+    --bg-primary: #FFFFFF;
     --text-primary: #000000;
-    --text-secondary: rgba(0, 0, 0, 0.7);
-    --text-disabled: rgba(0, 0, 0, 0.5);
-    --action-active: #000000;
+    --text-secondary: rgba(0, 0, 0, 0.8);
     --action-hover: rgba(0, 0, 0, 0.08);
     --action-selected: rgba(0, 0, 0, 0.16);
-    --action-disabled: rgba(0, 0, 0, 0.3);
-    --action-disabled-background: rgba(0, 0, 0, 0.12);
-    --msg-user: #e6e6e6;
-    --msg-bot: #d9d9d9;
-    --sidebar-bg: #ffffff;
-    --input-bg: #ffffff;
+    --msg-user: #f3f3f3;
+    --msg-bot: #f1f1f1;
+    --sidebar-bg: #FFFFFF;
+    --input-bg: #1E1E1E;
     --border-color: rgba(0, 0, 0, 0.12);
 }
 
@@ -20,12 +16,8 @@
     --bg-primary: #121212;
     --text-primary: #FFFFFF;
     --text-secondary: hsla(0, 0%, 100%, 0.8);
-    --text-disabled: rgba(255, 255, 255, 0.5);
-    --action-active: #FFFFFF;
     --action-hover: rgba(255, 255, 255, 0.08);
     --action-selected: rgba(255, 255, 255, 0.16);
-    --action-disabled: rgba(255, 255, 255, 0.3);
-    --action-disabled-background: rgba(255, 255, 255, 0.12);
     --msg-user: #1E1E1E;
     --msg-bot: #1E1E1E;
     --sidebar-bg: #1E1E1E;

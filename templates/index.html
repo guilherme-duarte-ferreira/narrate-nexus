@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -49,7 +50,20 @@
             <div class="welcome-screen">
                 <h1>Como posso ajudar?</h1>
                 <form class="input-box" id="welcome-form">
-                    <textarea id="welcome-input" placeholder="Envie uma mensagem..." rows="1"></textarea>
+                    <textarea 
+                        id="welcome-input" 
+                        placeholder="Digite / para ver os comandos..." 
+                        rows="1"
+                    ></textarea>
+                    <div id="command-menu" class="command-menu">
+                        <div class="command-item" data-command="/youtube">
+                            <i class="fas fa-youtube command-icon"></i>
+                            <div>
+                                <div class="command-text">/youtube</div>
+                                <div class="command-description">Resumir vídeo do YouTube</div>
+                            </div>
+                        </div>
+                    </div>
                     <button type="submit" class="send-btn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -82,7 +96,20 @@
             <!-- Container de Input -->
             <div class="input-container" style="display: none;">
                 <form class="input-box" id="chat-form">
-                    <textarea id="chat-input" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                    <textarea 
+                        id="chat-input" 
+                        placeholder="Digite / para ver os comandos..." 
+                        rows="1"
+                    ></textarea>
+                    <div id="chat-command-menu" class="command-menu">
+                        <div class="command-item" data-command="/youtube">
+                            <i class="fas fa-youtube command-icon"></i>
+                            <div>
+                                <div class="command-text">/youtube</div>
+                                <div class="command-description">Resumir vídeo do YouTube</div>
+                            </div>
+                        </div>
+                    </div>
                     <button type="submit" class="send-btn" id="send-btn">
                         <i class="fas fa-paper-plane"></i>
                     </button>

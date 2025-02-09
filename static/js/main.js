@@ -1,3 +1,4 @@
+
 import './init.js';
 import { 
     iniciarChat,
@@ -27,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const stopBtn = document.getElementById('stop-btn');
     const newChatBtn = document.querySelector('.new-chat-btn');
+
+    // Configurar menus de comando
+    setupCommandMenu('welcome-input', 'command-menu');
+    setupCommandMenu('chat-input', 'chat-command-menu');
 
     // Configurar botão de nova conversa
     newChatBtn?.addEventListener('click', () => {
@@ -88,6 +93,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar lista de conversas
     atualizarListaConversas();
 });
+
+function setupCommandMenu(inputId, menuId) {
+    const input = document.getElementById(inputId);
+    const menu = document.getElementById(menuId);
+    const commandItems = menu.querySelectorAll('.command-item');
+
+    input.addEventListener('input', function() {
+        const text = this.value;
+        if (text.startsWith('/')) {
+            const rect = input.getBoundingClientRect();
+            menu.style.top = `${rect.bottom + 5}px`;
+            menu.style.left = `${rect.left}px`;
+            menu.classList.add('visible');
+        } else {
+            menu.classList.remove('visible');
+        }
+    });
+
+    commandItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const command = this.dataset.command;
+            input.value = command + ' ';
+            menu.classList.remove('visible');
+            input.focus();
+        });
+    });
+
+    // Fechar menu ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('visible');
+        }
+    });
+}
 
 // Expor funções globalmente
 window.carregarConversa = carregarConversa;

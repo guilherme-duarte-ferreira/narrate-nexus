@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import requests
 from utils.text_processor import split_text, clean_and_format_text
-from app.youtube_handler import YoutubeHandler
+from youtube_handler import YoutubeHandler
 from utils.chat_storage import (
     create_new_conversation,
     add_message_to_conversation,

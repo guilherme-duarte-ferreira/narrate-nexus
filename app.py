@@ -3,7 +3,8 @@ import json
 import os
 from datetime import datetime
 import requests
-from utils.text_processor import split_text
+from utils.text_processor import split_text, clean_and_format_text
+from app.youtube_handler import YoutubeHandler
 from utils.chat_storage import (
     create_new_conversation,
     add_message_to_conversation,
@@ -16,6 +17,7 @@ app.secret_key = 'sua_chave_secreta_aqui'
 
 API_URL = "http://localhost:11434/v1/chat/completions"
 MODEL_NAME = "gemma2:2b"
+youtube_handler = YoutubeHandler()
 
 @app.route('/')
 def home():
@@ -119,6 +121,43 @@ def process_with_ai_stream(text):
         print(f"[Debug] Erro na requisição HTTP: {str(e)}")
     except Exception as e:
         print(f"[Debug] Erro inesperado: {str(e)}")
+
+@app.route('/process_youtube', methods=['POST'])
+def process_youtube():
+    data = request.json
+    video_url = data.get('video_url')
+    
+    if not video_url:
+        return jsonify({'error': 'URL do vídeo não fornecida'}), 400
+        
+    # Baixa as legendas
+    subtitle_file = youtube_handler.download_subtitles(video_url)
+    if not subtitle_file:
+        return jsonify({'error': 'Não foi possível baixar as legendas'}), 400
+        
+    # Limpa as legendas
+    subtitle_text = youtube_handler.clean_subtitles(subtitle_file)
+    if not subtitle_text:
+        return jsonify({'error': 'Erro ao processar legendas'}), 500
+        
+    # Limpa e formata o texto
+    cleaned_text = clean_and_format_text(subtitle_text)
+    
+    # Divide em chunks
+    chunks = split_text(cleaned_text)
+    
+    # Cria uma nova conversa
+    conversation_id = create_new_conversation()
+    
+    # Salva os chunks para processamento
+    for chunk in chunks:
+        add_message_to_conversation(conversation_id, chunk, 'user')
+    
+    return jsonify({
+        'status': 'success',
+        'conversation_id': conversation_id,
+        'message': 'Legendas processadas com sucesso'
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

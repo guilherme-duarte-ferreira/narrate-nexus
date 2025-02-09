@@ -17,9 +17,11 @@
 @import './themes/light-theme.css';
 @import './themes/dark-theme.css';
 
-/* Command Menu Styles */
+/* Estilos do Menu de Comandos */
 .command-menu {
     position: absolute;
+    left: 0;
+    top: 100%;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -32,7 +34,7 @@
 }
 
 .command-menu.visible {
-    display: block;
+    display: block !important;
 }
 
 .command-item {

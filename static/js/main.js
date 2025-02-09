@@ -97,22 +97,34 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupCommandMenu(inputId, menuId) {
     const input = document.getElementById(inputId);
     const menu = document.getElementById(menuId);
+
+    if (!input || !menu) {
+        console.error(`Erro: Elementos não encontrados para ${inputId} ou ${menuId}`);
+        return;
+    }
+
     const commandItems = menu.querySelectorAll('.command-item');
 
     input.addEventListener('input', function() {
-        const text = this.value;
+        const text = this.value.trim();
+        
         if (text.startsWith('/')) {
             const rect = input.getBoundingClientRect();
-            menu.style.top = `${rect.bottom + 5}px`;
-            menu.style.left = `${rect.left}px`;
-            menu.classList.add('visible');
+            const inputContainer = input.closest('.input-box');
+            
+            if (inputContainer) {
+                menu.style.top = `${rect.bottom + window.scrollY}px`;
+                menu.style.left = `${rect.left}px`;
+                menu.classList.add('visible');
+            }
         } else {
             menu.classList.remove('visible');
         }
     });
 
     commandItems.forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation(); // Impede que o clique feche o menu imediatamente
             const command = this.dataset.command;
             input.value = command + ' ';
             menu.classList.remove('visible');
@@ -120,7 +132,12 @@ function setupCommandMenu(inputId, menuId) {
         });
     });
 
-    // Fechar menu ao clicar fora
+    // Impede que cliques dentro do menu o fechem
+    menu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Fecha o menu ao clicar fora
     document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !menu.contains(e.target)) {
             menu.classList.remove('visible');

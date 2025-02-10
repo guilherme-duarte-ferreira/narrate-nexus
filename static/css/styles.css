@@ -1,6 +1,9 @@
 
+@import './components/command-menu.css';
+
 /* Reset e variáveis base */
 @import './base/variables.css';
+
 @import './base/reset.css';
 @import './base/typography.css';
 

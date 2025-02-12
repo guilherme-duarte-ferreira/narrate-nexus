@@ -33,9 +33,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar menus de comando usando o módulo criado
     const welcomeCommandMenu = document.getElementById('command-menu');
     const chatCommandMenu = document.getElementById('chat-command-menu');
-    if (welcomeInput && welcomeCommandMenu) {
-        initCommandMenu(welcomeInput, welcomeCommandMenu);
-    }
+const COMMANDS = [
+    { command: '/youtube', description: 'Processar vídeo do YouTube' },
+    { command: '/salvar', description: 'Salvar conversa atual' },
+    { command: '/historico', description: 'Ver histórico completo' },
+    { command: '/config', description: 'Abrir configurações' }
+];
+
+if (welcomeInput && welcomeCommandMenu) {
+    initCommandMenu(welcomeInput, welcomeCommandMenu, COMMANDS.map(c => c.command));
+}
+if (chatInput && chatCommandMenu) {
+    initCommandMenu(chatInput, chatCommandMenu, COMMANDS.map(c => c.command));
+}
+
     if (chatInput && chatCommandMenu) {
         initCommandMenu(chatInput, chatCommandMenu);
     }

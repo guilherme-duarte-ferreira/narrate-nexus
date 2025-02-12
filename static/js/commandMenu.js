@@ -1,5 +1,7 @@
-// static/js/commandMenu.js
 export function initCommandMenu(inputElement, menuElement, commands = ['/youtube', '/google', '/help', '/settings']) {
+    let selectedIndex = -1;
+    const items = [];
+
     // Remover o menu do contêiner atual e adicioná-lo ao body para evitar clipping
     if (menuElement.parentNode !== document.body) {
         menuElement.parentNode.removeChild(menuElement);
@@ -13,14 +15,11 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
 
     // Quando o usuário digitar, verifica se o texto começa com '/'
     inputElement.addEventListener('input', function() {
-        console.log('Input disparado:', this.value);
         const text = this.value.trim();
         if (text.startsWith('/')) {
-            // Atualiza os itens do menu filtrando os comandos fornecidos
             const filtered = commands.filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()));
             menuElement.innerHTML = filtered.map(cmd => `
                 <div class="command-item" data-command="${cmd}">
-                    <!-- Ícone removido -->
                     <div>
                         <div class="command-text">${cmd}</div>
                         <div class="command-description">Descrição para ${cmd}</div>
@@ -28,7 +27,6 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 </div>
             `).join('');
 
-            // Adiciona os listeners de clique para os novos itens
             menuElement.querySelectorAll('.command-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -39,17 +37,14 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 });
             });
 
-            // Torna o menu visível mas invisível para que ele seja renderizado
             menuElement.style.visibility = 'hidden';
             menuElement.classList.add('visible');
 
-            // Usa requestAnimationFrame para aguardar a renderização e medir a altura
             requestAnimationFrame(() => {
                 const menuHeight = menuElement.offsetHeight;
                 const rect = inputElement.getBoundingClientRect();
                 menuElement.style.top = `${rect.top - menuHeight + window.scrollY}px`;
                 menuElement.style.left = `${rect.left + window.scrollX}px`;
-                // Restaura a visibilidade normal
                 menuElement.style.visibility = 'visible';
             });
         } else {
@@ -57,17 +52,54 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         }
     });
 
-    // Impede que cliques dentro do menu o fechem
-    menuElement.addEventListener('click', function(e) {
-        e.stopPropagation();
+    function updateSelectedItem() {
+        items.forEach((item, index) => 
+            item.classList.toggle('selected', index === selectedIndex)
+        );
+        
+        if (items[selectedIndex]) {
+            items[selectedIndex].scrollIntoView({
+                block: 'nearest',
+                behavior: 'auto'
+            });
+        }
+    }
+
+    function handleKeyDown(e) {
+        if (!menuElement.classList.contains('visible')) return;
+
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelectedItem();
+                break;
+                
+            case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelectedItem();
+                break;
+                
+            case 'Enter':
+                e.preventDefault();
+                if (selectedIndex > -1 && items[selectedIndex]) {
+                    items[selectedIndex].click();
+                }
+                break;
+        }
+    }
+
+    inputElement.addEventListener('keydown', handleKeyDown);
+
+    const observer = new MutationObserver(() => {
+        items.length = 0;
+        menuElement.querySelectorAll('.command-item').forEach(item => items.push(item));
+        selectedIndex = -1;
+        updateSelectedItem();
     });
 
-    // Fecha o menu ao clicar fora do input e do menu
-    document.addEventListener('click', function(e) {
-        if (!inputElement.contains(e.target) && !menuElement.contains(e.target)) {
-            menuElement.classList.remove('visible');
-        }
-    });
+    observer.observe(menuElement, { childList: true, subtree: true });
 }
 
 // Expor a função globalmente (fora da definição da função)

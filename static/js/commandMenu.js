@@ -1,3 +1,4 @@
+// static/js/commandMenu.js
 export function initCommandMenu(inputElement, menuElement, commands = ['/youtube', '/google', '/help', '/settings']) {
     let selectedIndex = -1;
     const items = [];
@@ -15,8 +16,10 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
 
     // Quando o usuário digitar, verifica se o texto começa com '/'
     inputElement.addEventListener('input', function() {
-        const text = this.value.trim();
-        if (text.startsWith('/')) {
+        const text = this.value;
+        
+        // Mostrar menu apenas quando o '/' estiver no início
+        if (text.startsWith('/') && (text === '/' || text.endsWith(' '))) {
             const filtered = commands.filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()));
             menuElement.innerHTML = filtered.map(cmd => `
                 <div class="command-item" data-command="${cmd}">
@@ -31,9 +34,12 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const command = this.dataset.command;
-                    inputElement.value = command + ' ';
+                    inputElement.value = command + ' '; // Adiciona espaço após o comando
                     menuElement.classList.remove('visible');
                     inputElement.focus();
+                    
+                    // Move o cursor para o final
+                    inputElement.selectionStart = inputElement.selectionEnd = command.length + 1;
                 });
             });
 
@@ -69,6 +75,21 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         if (!menuElement.classList.contains('visible')) return;
 
         switch(e.key) {
+            case 'Escape':
+                e.preventDefault();
+                menuElement.classList.remove('visible');
+                selectedIndex = -1;
+                updateSelectedItem();
+                break;
+                
+            case 'Enter':
+                e.preventDefault(); // Impedir o envio do formulário
+                if (selectedIndex > -1 && items[selectedIndex]) {
+                    items[selectedIndex].click();
+                    menuElement.classList.remove('visible');
+                }
+                break;
+
             case 'ArrowDown':
                 e.preventDefault();
                 selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
@@ -79,13 +100,6 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 e.preventDefault();
                 selectedIndex = Math.max(selectedIndex - 1, -1);
                 updateSelectedItem();
-                break;
-                
-            case 'Enter':
-                e.preventDefault();
-                if (selectedIndex > -1 && items[selectedIndex]) {
-                    items[selectedIndex].click();
-                }
                 break;
         }
     }

@@ -33,22 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar menus de comando usando o módulo criado
     const welcomeCommandMenu = document.getElementById('command-menu');
     const chatCommandMenu = document.getElementById('chat-command-menu');
-const COMMANDS = [
-    { command: '/youtube', description: 'Processar vídeo do YouTube' },
-    { command: '/salvar', description: 'Salvar conversa atual' },
-    { command: '/historico', description: 'Ver histórico completo' },
-    { command: '/config', description: 'Abrir configurações' }
-];
 
-if (welcomeInput && welcomeCommandMenu) {
-    initCommandMenu(welcomeInput, welcomeCommandMenu, COMMANDS.map(c => c.command));
-}
-if (chatInput && chatCommandMenu) {
-    initCommandMenu(chatInput, chatCommandMenu, COMMANDS.map(c => c.command));
-}
+    const COMMANDS = [
+        { command: '/youtube', description: 'Processar vídeo do YouTube' },
+        { command: '/salvar', description: 'Salvar conversa atual' },
+        { command: '/historico', description: 'Ver histórico completo' },
+        { command: '/config', description: 'Abrir configurações' }
+    ];
 
+    if (welcomeInput && welcomeCommandMenu) {
+        initCommandMenu(welcomeInput, welcomeCommandMenu, COMMANDS.map(c => c.command));
+    }
     if (chatInput && chatCommandMenu) {
-        initCommandMenu(chatInput, chatCommandMenu);
+        initCommandMenu(chatInput, chatCommandMenu, COMMANDS.map(c => c.command));
     }
 
     // Configurar botão de nova conversa
@@ -67,6 +64,12 @@ if (chatInput && chatCommandMenu) {
         e.preventDefault();
         const message = welcomeInput.value.trim();
         if (!message) return;
+
+        // Se o texto começar com '/' e não for um comando completo
+        if (message.startsWith('/') && !message.includes(' ')) {
+            // Não enviar, apenas mostrar menu
+            return;
+        }
 
         // Criar nova conversa se não existir
         if (!window.conversaAtual) {

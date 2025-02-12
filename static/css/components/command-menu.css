@@ -27,3 +27,7 @@
 .cmd-item:hover {
     background: #3d3d3d;
 }
+
+.command-menu {
+    z-index: 9999;
+}

@@ -66,3 +66,12 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
 }
+
+.command-menu {
+    display: none;
+    position: absolute;
+    /* outras propriedades de estilo */
+}
+.command-menu.visible {
+    display: block;
+}

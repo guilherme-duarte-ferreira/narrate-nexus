@@ -1,4 +1,4 @@
-
+// static/js/main.js
 import './init.js';
 import { 
     iniciarChat,
@@ -13,6 +13,7 @@ import {
     renomearConversa,
     excluirConversa
 } from './chat.js';
+import { initCommandMenu } from './commandMenu.js';
 
 // Estado global
 window.currentModel = 'gemma2:2b';
@@ -29,9 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const stopBtn = document.getElementById('stop-btn');
     const newChatBtn = document.querySelector('.new-chat-btn');
 
-    // Configurar menus de comando
-    setupCommandMenu('welcome-input', 'command-menu');
-    setupCommandMenu('chat-input', 'chat-command-menu');
+    // Configurar menus de comando usando o módulo criado
+    const welcomeCommandMenu = document.getElementById('command-menu');
+    const chatCommandMenu = document.getElementById('chat-command-menu');
+    if (welcomeInput && welcomeCommandMenu) {
+        initCommandMenu(welcomeInput, welcomeCommandMenu);
+    }
+    if (chatInput && chatCommandMenu) {
+        initCommandMenu(chatInput, chatCommandMenu);
+    }
 
     // Configurar botão de nova conversa
     newChatBtn?.addEventListener('click', () => {
@@ -93,57 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar lista de conversas
     atualizarListaConversas();
 });
-
-function setupCommandMenu(inputId, menuId) {
-    const input = document.getElementById(inputId);
-    const menu = document.getElementById(menuId);
-
-    if (!input || !menu) {
-        console.error(`Erro: Elementos não encontrados para ${inputId} ou ${menuId}`);
-        return;
-    }
-
-    const commandItems = menu.querySelectorAll('.command-item');
-
-    input.addEventListener('input', function() {
-        const text = this.value.trim();
-        
-        if (text.startsWith('/')) {
-            const rect = input.getBoundingClientRect();
-            const inputContainer = input.closest('.input-box');
-            
-            if (inputContainer) {
-                menu.style.top = `${rect.bottom + window.scrollY}px`;
-                menu.style.left = `${rect.left}px`;
-                menu.classList.add('visible');
-            }
-        } else {
-            menu.classList.remove('visible');
-        }
-    });
-
-    commandItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation(); // Impede que o clique feche o menu imediatamente
-            const command = this.dataset.command;
-            input.value = command + ' ';
-            menu.classList.remove('visible');
-            input.focus();
-        });
-    });
-
-    // Impede que cliques dentro do menu o fechem
-    menu.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-
-    // Fecha o menu ao clicar fora
-    document.addEventListener('click', function(e) {
-        if (!input.contains(e.target) && !menu.contains(e.target)) {
-            menu.classList.remove('visible');
-        }
-    });
-}
 
 // Expor funções globalmente
 window.carregarConversa = carregarConversa;

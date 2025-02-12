@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -35,7 +34,7 @@
                 <button class="header-sidebar-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="program-name">AI  </h1>
+                <h1 class="program-name">AI Chat</h1>
                 <div class="top-bar-actions">
                     <button class="theme-toggle">
                         <i class="fas fa-moon"></i>
@@ -55,6 +54,7 @@
                         placeholder="Digite / para ver os comandos..." 
                         rows="1"
                     ></textarea>
+                    <!-- Área para o menu de comandos na tela de boas-vindas -->
                     <div id="command-menu" class="command-menu">
                         <div class="command-item" data-command="/youtube">
                             <i class="fas fa-youtube command-icon"></i>
@@ -101,6 +101,7 @@
                         placeholder="Digite / para ver os comandos..." 
                         rows="1"
                     ></textarea>
+                    <!-- Área para o menu de comandos no chat ativo -->
                     <div id="chat-command-menu" class="command-menu">
                         <div class="command-item" data-command="/youtube">
                             <i class="fas fa-youtube command-icon"></i>
@@ -121,9 +122,8 @@
         </main>
     </div>
 
+    <!-- Incluímos os scripts conforme o seu fluxo original -->
     <script type="module" src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/modules/commandHandler.js') }}" defer></script>
 </body>
-
 </html>

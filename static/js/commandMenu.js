@@ -6,7 +6,6 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         document.body.appendChild(menuElement);
     }
 
-
     if (!inputElement || !menuElement) {
         console.error('Elementos de input ou menu não foram fornecidos.');
         return;
@@ -15,22 +14,19 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     // Quando o usuário digitar, verifica se o texto começa com '/'
     inputElement.addEventListener('input', function() {
         console.log('Input disparado:', this.value);
-        // debugger; // Descomente para depuração
         const text = this.value.trim();
         if (text.startsWith('/')) {
             // Atualiza os itens do menu filtrando os comandos fornecidos
             const filtered = commands.filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()));
-            menuElement.innerHTML = filtered
-                .map(cmd => `
-                    <div class="command-item" data-command="${cmd}">
-                        <i class="fas fa-${cmd.slice(1)} command-icon"></i>
-                        <div>
-                            <div class="command-text">${cmd}</div>
-                            <div class="command-description">Descrição para ${cmd}</div>
-                        </div>
+            menuElement.innerHTML = filtered.map(cmd => `
+                <div class="command-item" data-command="${cmd}">
+                    <!-- Ícone removido -->
+                    <div>
+                        <div class="command-text">${cmd}</div>
+                        <div class="command-description">Descrição para ${cmd}</div>
                     </div>
-                `)
-                .join('');
+                </div>
+            `).join('');
 
             // Adiciona os listeners de clique para os novos itens
             menuElement.querySelectorAll('.command-item').forEach(item => {
@@ -43,13 +39,19 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 });
             });
 
-            // Calcula a posição do menu com base no input e posiciona o menu
-            const rect = inputElement.getBoundingClientRect();
-            menuElement.style.top = `${rect.top - menuElement.offsetHeight + window.scrollY}px`;
-
-            menuElement.style.left = `${rect.left + window.scrollX}px`;
+            // Torna o menu visível mas invisível para que ele seja renderizado
+            menuElement.style.visibility = 'hidden';
             menuElement.classList.add('visible');
 
+            // Usa requestAnimationFrame para aguardar a renderização e medir a altura
+            requestAnimationFrame(() => {
+                const menuHeight = menuElement.offsetHeight;
+                const rect = inputElement.getBoundingClientRect();
+                menuElement.style.top = `${rect.top - menuHeight + window.scrollY}px`;
+                menuElement.style.left = `${rect.left + window.scrollX}px`;
+                // Restaura a visibilidade normal
+                menuElement.style.visibility = 'visible';
+            });
         } else {
             menuElement.classList.remove('visible');
         }

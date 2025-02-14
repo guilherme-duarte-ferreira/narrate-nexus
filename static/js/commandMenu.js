@@ -1,114 +1,122 @@
 
-// Função para inicializar o menu de comandos
+/**
+ * Função para inicializar o menu de comandos
+ * @param {HTMLElement} inputElement - Campo de entrada onde os comandos serão digitados
+ * @param {HTMLElement} menuElement - Elemento do menu que será exibido
+ * @param {string[]} commands - Lista de comandos disponíveis
+ */
 export function initCommandMenu(inputElement, menuElement, commands = ['/youtube', '/google', '/help', '/settings']) {
-    let selectedIndex = -1;
-    const items = [];
-
-    // Remover o menu do contêiner atual e adicioná-lo ao body para evitar clipping
-    if (menuElement.parentNode !== document.body) {
-        menuElement.parentNode.removeChild(menuElement);
-        document.body.appendChild(menuElement);
-    }
-
     if (!inputElement || !menuElement) {
         console.error('Elementos de input ou menu não foram fornecidos.');
         return;
     }
 
-    // Quando o usuário digitar, verifica se o texto começa com '/'
+    let selectedIndex = -1;
+    let items = [];
+
+    // Posicionar menu no body para evitar problemas de z-index
+    if (menuElement.parentNode !== document.body) {
+        menuElement.parentNode.removeChild(menuElement);
+        document.body.appendChild(menuElement);
+    }
+
+    function updateMenuPosition() {
+        const rect = inputElement.getBoundingClientRect();
+        menuElement.style.position = 'absolute';
+        menuElement.style.top = `${rect.bottom + window.scrollY}px`;
+        menuElement.style.left = `${rect.left + window.scrollX}px`;
+        menuElement.style.minWidth = `${rect.width}px`;
+    }
+
+    function updateMenuContent(text) {
+        const filtered = commands.filter(cmd => 
+            cmd.toLowerCase().startsWith(text.toLowerCase())
+        );
+
+        menuElement.innerHTML = filtered.map(cmd => `
+            <div class="command-item" data-command="${cmd}">
+                <div class="command-content">
+                    <div class="command-text">${cmd}</div>
+                    <div class="command-description">Descrição para ${cmd}</div>
+                </div>
+            </div>
+        `).join('');
+
+        // Atualizar lista de itens
+        items = Array.from(menuElement.querySelectorAll('.command-item'));
+        selectedIndex = -1;
+        updateSelectedItem();
+    }
+
+    function updateSelectedItem() {
+        items.forEach((item, index) => {
+            item.classList.toggle('selected', index === selectedIndex);
+        });
+
+        if (items[selectedIndex]) {
+            items[selectedIndex].scrollIntoView({ 
+                block: 'nearest',
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    function selectCommand(command) {
+        inputElement.value = command + ' ';
+        menuElement.classList.remove('visible');
+        inputElement.focus();
+    }
+
+    // Event Listeners
     inputElement.addEventListener('input', function() {
         const text = this.value;
         
         if (text.startsWith('/')) {
-            const filtered = commands.filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()));
-            menuElement.innerHTML = filtered.map(cmd => `
-                <div class="command-item" data-command="${cmd}">
-                    <div>
-                        <div class="command-text">${cmd}</div>
-                        <div class="command-description">Descrição para ${cmd}</div>
-                    </div>
-                </div>
-            `).join('');
-
-            // Atualizar lista de itens após modificar o HTML
-            items.length = 0;
-            menuElement.querySelectorAll('.command-item').forEach(item => items.push(item));
-            selectedIndex = -1;
-            updateSelectedItem();
-
-            menuElement.style.visibility = 'hidden';
+            updateMenuContent(text);
+            updateMenuPosition();
             menuElement.classList.add('visible');
-
-            // Posicionar menu corretamente
-            const rect = inputElement.getBoundingClientRect();
-            menuElement.style.top = `${rect.bottom + window.scrollY}px`;
-            menuElement.style.left = `${rect.left + window.scrollX}px`;
-            menuElement.style.visibility = 'visible';
         } else {
             menuElement.classList.remove('visible');
         }
     });
 
-    // Atualizar item selecionado
-    function updateSelectedItem() {
-        items.forEach((item, index) => 
-            item.classList.toggle('selected', index === selectedIndex)
-        );
-        
-        if (items[selectedIndex]) {
-            items[selectedIndex].scrollIntoView({
-                block: 'nearest',
-                behavior: 'auto'
-            });
-        }
-    }
-
-    // Tratar eventos de teclado
-    function handleKeyDown(e) {
+    inputElement.addEventListener('keydown', function(e) {
         if (!menuElement.classList.contains('visible')) return;
 
         switch(e.key) {
-            case 'Escape':
-                e.preventDefault();
-                menuElement.classList.remove('visible');
-                selectedIndex = -1;
-                updateSelectedItem();
-                break;
-                
-            case 'Enter':
-                e.preventDefault(); // Impedir o envio do formulário
-                if (selectedIndex > -1 && items[selectedIndex]) {
-                    const command = items[selectedIndex].dataset.command;
-                    inputElement.value = command + ' ';
-                    menuElement.classList.remove('visible');
-                    inputElement.focus();
-                }
-                break;
-
             case 'ArrowDown':
                 e.preventDefault();
                 selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
                 updateSelectedItem();
                 break;
-                
+
             case 'ArrowUp':
                 e.preventDefault();
                 selectedIndex = Math.max(selectedIndex - 1, -1);
                 updateSelectedItem();
                 break;
+
+            case 'Enter':
+                e.preventDefault();
+                if (selectedIndex >= 0 && items[selectedIndex]) {
+                    const command = items[selectedIndex].dataset.command;
+                    selectCommand(command);
+                }
+                break;
+
+            case 'Escape':
+                e.preventDefault();
+                menuElement.classList.remove('visible');
+                break;
         }
-    }
+    });
 
-    inputElement.addEventListener('keydown', handleKeyDown);
-
-    // Adicionar eventos de clique aos itens do menu
+    // Clicar em um comando
     menuElement.addEventListener('click', function(e) {
         const item = e.target.closest('.command-item');
         if (item) {
             const command = item.dataset.command;
-            inputElement.value = command + ' ';
-            menuElement.classList.remove('visible');
-            inputElement.focus();
+            selectCommand(command);
         }
     });
 
@@ -118,7 +126,11 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
             menuElement.classList.remove('visible');
         }
     });
+
+    // Atualizar posição do menu ao redimensionar/rolar
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition);
 }
 
-// Expor a função globalmente
+// Expor a função globalmente se necessário
 window.initCommandMenu = initCommandMenu;

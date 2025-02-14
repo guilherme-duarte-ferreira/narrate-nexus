@@ -18,13 +18,13 @@ export function configureTextarea(textarea) {
             // Verifica se há um menu de comandos visível
             const commandMenu = document.querySelector('.command-menu.visible');
             
-            // Se o menu estiver visível, não envia o formulário
+            // Previne o envio somente se o menu estiver visível
             if (commandMenu) {
                 e.preventDefault();
                 return;
             }
             
-            // Caso contrário, envia o formulário
+            // Caso contrário, permite o envio normal
             e.preventDefault();
             const form = this.closest('form');
             if (form) {

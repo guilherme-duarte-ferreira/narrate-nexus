@@ -30,18 +30,15 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         
         menuElement.style.position = 'fixed';
         
-        // Decidir se abre para cima ou para baixo baseado no espaço disponível
         if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
-            // Abrir para cima
             menuElement.style.top = `${rect.top - menuHeight}px`;
         } else {
-            // Abrir para baixo
             menuElement.style.top = `${rect.bottom}px`;
         }
         
         menuElement.style.left = `${rect.left}px`;
         menuElement.style.minWidth = `${rect.width}px`;
-        menuElement.style.maxHeight = '200px'; // Limitar altura máxima
+        menuElement.style.maxHeight = '200px';
     }
 
     function updateMenuContent(text) {
@@ -81,25 +78,29 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         menuElement.classList.remove('visible');
         isCommandSelected = true;
         inputElement.focus();
+        // Importante: não dispara o submit aqui
     }
 
     // Event Listeners
     inputElement.addEventListener('input', function() {
         const text = this.value;
-        isCommandSelected = false;
         
         if (text.startsWith('/')) {
             updateMenuContent(text);
             menuElement.classList.add('visible');
             updateMenuPosition();
+            isCommandSelected = false; // Reseta o estado ao começar a digitar
         } else {
             menuElement.classList.remove('visible');
+            isCommandSelected = false; // Reseta o estado quando não é mais um comando
         }
     });
 
+    // Separar a lógica de keydown para melhor controle do estado
     inputElement.addEventListener('keydown', function(e) {
         const isMenuVisible = menuElement.classList.contains('visible');
         
+        // Se o menu está visível, trata navegação e seleção
         if (isMenuVisible) {
             switch(e.key) {
                 case 'ArrowDown':
@@ -126,23 +127,12 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                     e.preventDefault();
                     menuElement.classList.remove('visible');
                     selectedIndex = -1;
+                    isCommandSelected = false;
                     break;
             }
-        } else if (e.key === 'Enter' && !e.shiftKey && !isCommandSelected) {
-            // Permitir envio normal se não estiver selecionando comando
-            const form = inputElement.closest('form');
-            if (form) {
-                e.preventDefault();
-                const event = new Event('submit', {
-                    bubbles: true,
-                    cancelable: true
-                });
-                form.dispatchEvent(event);
-            }
         }
-        
-        // Resetar flag após Enter
-        if (e.key === 'Enter') {
+        // Reseta o estado após o envio da mensagem
+        else if (e.key === 'Enter' && !e.shiftKey) {
             isCommandSelected = false;
         }
     });
@@ -160,6 +150,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     document.addEventListener('click', function(e) {
         if (!inputElement.contains(e.target) && !menuElement.contains(e.target)) {
             menuElement.classList.remove('visible');
+            isCommandSelected = false;
         }
     });
 
@@ -167,6 +158,3 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     window.addEventListener('resize', updateMenuPosition);
     window.addEventListener('scroll', updateMenuPosition);
 }
-
-// Expor a função globalmente se necessário
-window.initCommandMenu = initCommandMenu;

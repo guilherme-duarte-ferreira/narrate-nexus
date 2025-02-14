@@ -1,30 +1,24 @@
 
-/**
- * Configura um textarea para autoexpandir e gerenciar eventos de teclado
- * @param {HTMLTextAreaElement} textarea - O elemento textarea a ser configurado
- */
 export function configureTextarea(textarea) {
     if (!textarea) return;
 
-    // Auto-expand do textarea
     textarea.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Gerenciamento do Enter com verificação de estado do menu
     textarea.addEventListener('keydown', function(e) {
+        // Verifica se há um menu de comandos visível
+        const commandMenu = document.querySelector('.command-menu.visible');
+        
         if (e.key === 'Enter' && !e.shiftKey) {
-            // Verifica se há um menu de comandos visível
-            const commandMenu = document.querySelector('.command-menu.visible');
-            
-            // Previne o envio somente se o menu estiver visível
+            // Se o menu estiver visível, não envia o formulário
             if (commandMenu) {
                 e.preventDefault();
                 return;
             }
             
-            // Permite o envio normal
+            // Caso contrário, envia o formulário
             e.preventDefault();
             const form = this.closest('form');
             if (form) {

@@ -1,4 +1,5 @@
-// static/js/commandMenu.js
+
+// Função para inicializar o menu de comandos
 export function initCommandMenu(inputElement, menuElement, commands = ['/youtube', '/google', '/help', '/settings']) {
     let selectedIndex = -1;
     const items = [];
@@ -18,8 +19,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     inputElement.addEventListener('input', function() {
         const text = this.value;
         
-        // Mostrar menu apenas quando o '/' estiver no início
-        if (text.startsWith('/') && (text === '/' || text.endsWith(' '))) {
+        if (text.startsWith('/')) {
             const filtered = commands.filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()));
             menuElement.innerHTML = filtered.map(cmd => `
                 <div class="command-item" data-command="${cmd}">
@@ -30,34 +30,26 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                 </div>
             `).join('');
 
-            menuElement.querySelectorAll('.command-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const command = this.dataset.command;
-                    inputElement.value = command + ' '; // Adiciona espaço após o comando
-                    menuElement.classList.remove('visible');
-                    inputElement.focus();
-                    
-                    // Move o cursor para o final
-                    inputElement.selectionStart = inputElement.selectionEnd = command.length + 1;
-                });
-            });
+            // Atualizar lista de itens após modificar o HTML
+            items.length = 0;
+            menuElement.querySelectorAll('.command-item').forEach(item => items.push(item));
+            selectedIndex = -1;
+            updateSelectedItem();
 
             menuElement.style.visibility = 'hidden';
             menuElement.classList.add('visible');
 
-            requestAnimationFrame(() => {
-                const menuHeight = menuElement.offsetHeight;
-                const rect = inputElement.getBoundingClientRect();
-                menuElement.style.top = `${rect.top - menuHeight + window.scrollY}px`;
-                menuElement.style.left = `${rect.left + window.scrollX}px`;
-                menuElement.style.visibility = 'visible';
-            });
+            // Posicionar menu corretamente
+            const rect = inputElement.getBoundingClientRect();
+            menuElement.style.top = `${rect.bottom + window.scrollY}px`;
+            menuElement.style.left = `${rect.left + window.scrollX}px`;
+            menuElement.style.visibility = 'visible';
         } else {
             menuElement.classList.remove('visible');
         }
     });
 
+    // Atualizar item selecionado
     function updateSelectedItem() {
         items.forEach((item, index) => 
             item.classList.toggle('selected', index === selectedIndex)
@@ -71,6 +63,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         }
     }
 
+    // Tratar eventos de teclado
     function handleKeyDown(e) {
         if (!menuElement.classList.contains('visible')) return;
 
@@ -85,8 +78,10 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
             case 'Enter':
                 e.preventDefault(); // Impedir o envio do formulário
                 if (selectedIndex > -1 && items[selectedIndex]) {
-                    items[selectedIndex].click();
+                    const command = items[selectedIndex].dataset.command;
+                    inputElement.value = command + ' ';
                     menuElement.classList.remove('visible');
+                    inputElement.focus();
                 }
                 break;
 
@@ -106,15 +101,24 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
 
     inputElement.addEventListener('keydown', handleKeyDown);
 
-    const observer = new MutationObserver(() => {
-        items.length = 0;
-        menuElement.querySelectorAll('.command-item').forEach(item => items.push(item));
-        selectedIndex = -1;
-        updateSelectedItem();
+    // Adicionar eventos de clique aos itens do menu
+    menuElement.addEventListener('click', function(e) {
+        const item = e.target.closest('.command-item');
+        if (item) {
+            const command = item.dataset.command;
+            inputElement.value = command + ' ';
+            menuElement.classList.remove('visible');
+            inputElement.focus();
+        }
     });
 
-    observer.observe(menuElement, { childList: true, subtree: true });
+    // Fechar menu ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!inputElement.contains(e.target) && !menuElement.contains(e.target)) {
+            menuElement.classList.remove('visible');
+        }
+    });
 }
 
-// Expor a função globalmente (fora da definição da função)
+// Expor a função globalmente
 window.initCommandMenu = initCommandMenu;

@@ -1,4 +1,4 @@
-// static/js/main.js
+
 import './init.js';
 import { 
     iniciarChat,
@@ -14,6 +14,7 @@ import {
     excluirConversa
 } from './chat.js';
 import { initCommandMenu } from './commandMenu.js';
+import { configureTextarea } from './textarea.js';
 
 // Estado global
 window.currentModel = 'gemma2:2b';
@@ -43,9 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (welcomeInput && welcomeCommandMenu) {
         initCommandMenu(welcomeInput, welcomeCommandMenu, COMMANDS.map(c => c.command));
+        configureTextarea(welcomeInput);
     }
     if (chatInput && chatCommandMenu) {
         initCommandMenu(chatInput, chatCommandMenu, COMMANDS.map(c => c.command));
+        configureTextarea(chatInput);
     }
 
     // Configurar botão de nova conversa

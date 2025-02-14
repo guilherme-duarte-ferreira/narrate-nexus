@@ -13,6 +13,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
 
     let selectedIndex = -1;
     let items = [];
+    let isCommandSelected = false;
 
     // Posicionar menu no body para evitar problemas de z-index
     if (menuElement.parentNode !== document.body) {
@@ -22,10 +23,25 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
 
     function updateMenuPosition() {
         const rect = inputElement.getBoundingClientRect();
-        menuElement.style.position = 'absolute';
-        menuElement.style.top = `${rect.bottom + window.scrollY}px`;
-        menuElement.style.left = `${rect.left + window.scrollX}px`;
+        const menuHeight = menuElement.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        
+        menuElement.style.position = 'fixed';
+        
+        // Decidir se abre para cima ou para baixo baseado no espaço disponível
+        if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
+            // Abrir para cima
+            menuElement.style.top = `${rect.top - menuHeight}px`;
+        } else {
+            // Abrir para baixo
+            menuElement.style.top = `${rect.bottom}px`;
+        }
+        
+        menuElement.style.left = `${rect.left}px`;
         menuElement.style.minWidth = `${rect.width}px`;
+        menuElement.style.maxHeight = '200px'; // Limitar altura máxima
     }
 
     function updateMenuContent(text) {
@@ -42,7 +58,6 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
             </div>
         `).join('');
 
-        // Atualizar lista de itens
         items = Array.from(menuElement.querySelectorAll('.command-item'));
         selectedIndex = -1;
         updateSelectedItem();
@@ -64,50 +79,71 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     function selectCommand(command) {
         inputElement.value = command + ' ';
         menuElement.classList.remove('visible');
+        isCommandSelected = true;
         inputElement.focus();
     }
 
     // Event Listeners
     inputElement.addEventListener('input', function() {
         const text = this.value;
+        isCommandSelected = false;
         
         if (text.startsWith('/')) {
             updateMenuContent(text);
-            updateMenuPosition();
             menuElement.classList.add('visible');
+            updateMenuPosition();
         } else {
             menuElement.classList.remove('visible');
         }
     });
 
     inputElement.addEventListener('keydown', function(e) {
-        if (!menuElement.classList.contains('visible')) return;
+        const isMenuVisible = menuElement.classList.contains('visible');
+        
+        if (isMenuVisible) {
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                    updateSelectedItem();
+                    break;
 
-        switch(e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-                updateSelectedItem();
-                break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelectedItem();
+                    break;
 
-            case 'ArrowUp':
-                e.preventDefault();
-                selectedIndex = Math.max(selectedIndex - 1, -1);
-                updateSelectedItem();
-                break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        const command = items[selectedIndex].dataset.command;
+                        selectCommand(command);
+                    }
+                    break;
 
-            case 'Enter':
+                case 'Escape':
+                    e.preventDefault();
+                    menuElement.classList.remove('visible');
+                    selectedIndex = -1;
+                    break;
+            }
+        } else if (e.key === 'Enter' && !e.shiftKey && !isCommandSelected) {
+            // Permitir envio normal se não estiver selecionando comando
+            const form = inputElement.closest('form');
+            if (form) {
                 e.preventDefault();
-                if (selectedIndex >= 0 && items[selectedIndex]) {
-                    const command = items[selectedIndex].dataset.command;
-                    selectCommand(command);
-                }
-                break;
-
-            case 'Escape':
-                e.preventDefault();
-                menuElement.classList.remove('visible');
-                break;
+                const event = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                form.dispatchEvent(event);
+            }
+        }
+        
+        // Resetar flag após Enter
+        if (e.key === 'Enter') {
+            isCommandSelected = false;
         }
     });
 

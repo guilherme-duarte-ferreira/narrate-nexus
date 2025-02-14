@@ -1,15 +1,16 @@
 
 .command-menu {
-    position: absolute;
+    position: fixed;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 200px;
-    max-height: 300px;
+    max-height: 200px;
     overflow-y: auto;
     z-index: 1000;
     display: none;
+    overflow-x: hidden;
 }
 
 .command-menu.visible {
@@ -41,4 +42,18 @@
 .command-description {
     font-size: 0.875rem;
     color: var(--text-secondary);
+}
+
+/* Estilização da scrollbar */
+.command-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.command-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.command-menu::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
 }

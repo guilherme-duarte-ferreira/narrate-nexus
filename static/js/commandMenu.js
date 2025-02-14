@@ -14,6 +14,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
     let selectedIndex = -1;
     let items = [];
     let isCommandSelected = false;
+    let justSelectedCommand = false;
 
     // Posicionar menu no body para evitar problemas de z-index
     if (menuElement.parentNode !== document.body) {
@@ -77,8 +78,13 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         inputElement.value = command + ' ';
         menuElement.classList.remove('visible');
         isCommandSelected = true;
+        justSelectedCommand = true;
         inputElement.focus();
-        // Importante: não dispara o submit aqui
+        
+        // Resetar o estado após um pequeno delay
+        setTimeout(() => {
+            justSelectedCommand = false;
+        }, 100);
     }
 
     // Event Listeners
@@ -89,19 +95,41 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
             updateMenuContent(text);
             menuElement.classList.add('visible');
             updateMenuPosition();
-            isCommandSelected = false; // Reseta o estado ao começar a digitar
+            isCommandSelected = false;
         } else {
             menuElement.classList.remove('visible');
-            isCommandSelected = false; // Reseta o estado quando não é mais um comando
+            isCommandSelected = false;
+            justSelectedCommand = false;
         }
     });
 
-    // Separar a lógica de keydown para melhor controle do estado
+    // Keydown handler com melhor controle de estado
     inputElement.addEventListener('keydown', function(e) {
-        const isMenuVisible = menuElement.classList.contains('visible');
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const isMenuVisible = menuElement.classList.contains('visible');
+            
+            if (isMenuVisible) {
+                e.preventDefault();
+                if (selectedIndex >= 0 && items[selectedIndex]) {
+                    const command = items[selectedIndex].dataset.command;
+                    selectCommand(command);
+                }
+                return;
+            }
+            
+            // Previne o envio imediato após selecionar um comando
+            if (justSelectedCommand) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Reset dos estados após envio bem-sucedido
+            isCommandSelected = false;
+            justSelectedCommand = false;
+        }
         
-        // Se o menu está visível, trata navegação e seleção
-        if (isMenuVisible) {
+        // Navegação do menu
+        if (menuElement.classList.contains('visible')) {
             switch(e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
@@ -115,25 +143,14 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
                     updateSelectedItem();
                     break;
 
-                case 'Enter':
-                    e.preventDefault();
-                    if (selectedIndex >= 0 && items[selectedIndex]) {
-                        const command = items[selectedIndex].dataset.command;
-                        selectCommand(command);
-                    }
-                    break;
-
                 case 'Escape':
                     e.preventDefault();
                     menuElement.classList.remove('visible');
                     selectedIndex = -1;
                     isCommandSelected = false;
+                    justSelectedCommand = false;
                     break;
             }
-        }
-        // Reseta o estado após o envio da mensagem
-        else if (e.key === 'Enter' && !e.shiftKey) {
-            isCommandSelected = false;
         }
     });
 
@@ -151,6 +168,7 @@ export function initCommandMenu(inputElement, menuElement, commands = ['/youtube
         if (!inputElement.contains(e.target) && !menuElement.contains(e.target)) {
             menuElement.classList.remove('visible');
             isCommandSelected = false;
+            justSelectedCommand = false;
         }
     });
 

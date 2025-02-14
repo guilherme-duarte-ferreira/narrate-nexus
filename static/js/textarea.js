@@ -12,7 +12,7 @@ export function configureTextarea(textarea) {
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Gerenciamento do Enter
+    // Gerenciamento do Enter com verificação de estado do menu
     textarea.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             // Verifica se há um menu de comandos visível
@@ -24,7 +24,7 @@ export function configureTextarea(textarea) {
                 return;
             }
             
-            // Caso contrário, permite o envio normal
+            // Permite o envio normal
             e.preventDefault();
             const form = this.closest('form');
             if (form) {

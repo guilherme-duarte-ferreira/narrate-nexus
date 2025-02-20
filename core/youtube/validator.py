@@ -4,13 +4,26 @@ import re
 
 class YouTubeValidator:
     def __init__(self):
-        self._allowed_domains = {'youtube.com', 'youtu.be'}
-        self._id_pattern = re.compile(r'v=([a-zA-Z0-9_-]{11})')
+        self._allowed_domains = {'youtube.com', 'youtu.be', 'www.youtube.com'}
+        self._id_pattern = re.compile(
+            r'(?:v=|\/)([a-zA-Z0-9_-]{11}).*'  # Captura IDs em URLs curtas e longas
+        )
 
     def is_valid(self, url: str) -> bool:
         try:
             parsed = urlparse(url)
-            return (parsed.netloc.replace('www.', '') in self._allowed_domains and
-                    bool(self._id_pattern.search(url)))
+            domain = parsed.netloc.replace('www.', '')
+            
+            # Verifica domínio e extrai ID do vídeo
+            if domain in self._allowed_domains:
+                match = self._id_pattern.search(url)
+                return bool(match)
+            return False
         except:
             return False
+
+    def extract_video_id(self, url: str) -> str:
+        match = self._id_pattern.search(url)
+        if match:
+            return match.group(1)
+        raise ValueError("ID do vídeo não encontrado na URL")

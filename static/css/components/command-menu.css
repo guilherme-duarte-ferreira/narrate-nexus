@@ -1,39 +1,70 @@
-/* Prefixo único para evitar conflitos */
-.cmd-menu {
-    /* Mantenha as propriedades existentes */
+.command-menu {
     position: absolute;
-    background: #2d2d2d;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 8px;
     min-width: 200px;
+    max-width: 300px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 9999;
-    display: none !important; /* Força prioridade */
-    transform: translateY(-100%); /* Move o menu para cima */
-    margin-top: -8px; /* Espaçamento entre o menu e o campo */
+    display: none;
+    overflow: hidden;
+    bottom: calc(100% + 5px);
+    left: 0;
+    width: 100%;
+    margin-bottom: 5px;
 }
 
-
-.cmd-menu.visible {
-    display: block !important;
+/* Mobile: Se o menu não couber pra cima, abre pra baixo */
+@media (max-height: 600px) {
+    .command-menu {
+        bottom: auto;
+        top: calc(100% + 5px);
+    }
 }
 
-.command-menu .command-item.selected {
-    background-color: var(--action-hover);
-    border-radius: 4px;
+.command-menu.visible {
+    display: block;
 }
 
-.command-menu .command-item {
+.command-item {
     cursor: pointer;
     padding: 8px 12px;
     transition: background-color 0.2s;
+    border-radius: 4px;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-
-.cmd-item:hover {
-    background: #3d3d3d;
+.command-item:hover,
+.command-item.selected {
+    background-color: var(--action-hover);
 }
 
-.command-menu {
-    z-index: 9999;
+.command-text {
+    font-weight: 500;
+    text-align: left;
+}
+
+.command-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+/* Acessibilidade */
+.command-item {
+    role: option;
+    aria-selected: false;
+}
+
+.command-item.selected {
+    aria-selected: true;
 }

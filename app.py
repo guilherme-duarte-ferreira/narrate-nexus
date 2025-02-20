@@ -150,23 +150,27 @@ def process_youtube():
         video_url = data.get('url')
         
         if not video_url:
-            return jsonify({'error': 'URL não fornecida'}), 400
+            return jsonify({'error': 'URL do vídeo não fornecida'}), 400
             
-        # Validar URL
+        # Validação
         validator = YouTubeValidator()
         if not validator.is_valid(video_url):
-            return jsonify({'error': 'URL do YouTube inválida'}), 400
+            return jsonify({'error': 'URL do YouTube inválida ou não suportada'}), 400
             
-        # Baixar legendas
+        # Download
         downloader = YouTubeDownloader()
-        subtitle_file = downloader.fetch(video_url)
-        
-        # Limpar legendas
+        try:
+            subtitle_file = downloader.fetch(video_url)
+        except SubtitleNotFoundError:
+            return jsonify({'error': 'Legendas não encontradas para este vídeo'}), 404
+            
+        # Limpeza
         cleaner = SubtitleCleaner()
         cleaned_text = cleaner.sanitize(subtitle_file)
         
-        # Processar texto em chunks
-        chunks = split_text(cleaned_text)
+        # Divisão em chunks (300 palavras por chunk)
+        chunks = split_text(cleaned_text, words_per_chunk=300)
+
         
         return jsonify({
             'status': 'success',

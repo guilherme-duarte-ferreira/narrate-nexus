@@ -4,31 +4,39 @@ import { adicionarMensagem } from '../chat.js';
 
 export async function handleYoutubeCommand(url, chatContainer) {
     try {
-        // Mostrar mensagem de carregamento
-        const loadingMessage = 'Processando vídeo do YouTube...';
-        adicionarMensagem(chatContainer, loadingMessage, 'assistant');
+        // Exibe mensagem de carregamento com spinner
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'yt-processing-indicator';
+        loadingDiv.innerHTML = `
+            <div class="yt-spinner"></div>
+            <span>Processando vídeo...</span>
+        `;
+        chatContainer.appendChild(loadingDiv);
+
         
         // Processar vídeo
         const result = await processYoutubeVideo(url);
         
         if (result.status === 'success') {
-            // Remover mensagem de carregamento
-            chatContainer.lastElementChild.remove();
+            // Remove o indicador de carregamento
+            chatContainer.removeChild(loadingDiv);
             
-            // Exibir chunks de texto
-            result.chunks.forEach(chunk => {
-                adicionarMensagem(chatContainer, chunk, 'assistant');
+            // Exibe cada chunk no chat
+            result.chunks.forEach((chunk, index) => {
+                adicionarMensagem(chatContainer, `📝 Parte ${index + 1}:\n${chunk}`, 'assistant');
             });
         } else {
             throw new Error(result.error || 'Erro desconhecido');
         }
     } catch (error) {
-        // Remover mensagem de carregamento se existir
-        if (chatContainer.lastElementChild?.textContent === loadingMessage) {
-            chatContainer.lastElementChild.remove();
+        // Remove o indicador de carregamento se existir
+        const loadingIndicator = chatContainer.querySelector('.yt-processing-indicator');
+        if (loadingIndicator) {
+            chatContainer.removeChild(loadingIndicator);
         }
         
-        // Mostrar mensagem de erro
-        adicionarMensagem(chatContainer, `Erro: ${error.message}`, 'assistant');
+        // Mostra mensagem de erro
+        adicionarMensagem(chatContainer, `❌ Erro: ${error.message}`, 'assistant');
+
     }
 }

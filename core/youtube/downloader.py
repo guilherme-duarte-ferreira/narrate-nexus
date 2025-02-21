@@ -13,15 +13,19 @@ class YouTubeDownloader:
         return {
             'writesubtitles': True,
             'writeautomaticsub': True,
-            'subtitleslangs': ['pt', 'en', 'a.pt', 'a.en'],  # Legendas automáticas
+            'subtitleslangs': ['pt', 'en', 'a.pt', 'a.en'],  
+            'subtitlesformat': 'vtt',
             'skip_download': True,
             'outtmpl': str(Path(self.temp_dir) / '%(id)s.%(ext)s'),
-            'socket_timeout': 30,
-            'retries': 3,
-            'ignoreerrors': False,
+            'postprocessors': [{
+                'key': 'FFmpegSubtitlesConvertor',
+                'format': 'srt'
+            }],
+            'socket_timeout': 60,
             'quiet': True,
             'no_warnings': True
         }
+
 
 
     def fetch(self, url: str) -> str:
@@ -41,16 +45,17 @@ class YouTubeDownloader:
 
     def _find_subtitle_file(self, video_id: str) -> str:
         print(f"[DEBUG] Procurando arquivo de legendas para ID: {video_id}")
-        # Procurar por múltiplos formatos e padrões de nome
+        # Padrões para legendas automáticas e manuais
         patterns = [
-            f"{video_id}*.vtt",
-            f"{video_id}*.srt", 
-            f"{video_id}*.txt",
-            f"*-{video_id}.vtt",  # Padrão alternativo
-            f"*-{video_id}.srt"
+            f"{video_id}.pt.vtt",
+            f"{video_id}.a.pt.vtt",
+            f"{video_id}.en.vtt",
+            f"{video_id}.a.en.vtt",
+            f"*-{video_id}.vtt",
+            f"*.srt"
         ]
         
-        # Tentar encontrar o arquivo de legenda
+        # Busca hierárquica
         for pattern in patterns:
             print(f"[DEBUG] Procurando padrão: {pattern}")
             files = list(Path(self.temp_dir).glob(pattern))
@@ -60,5 +65,6 @@ class YouTubeDownloader:
                 selected_file = files[0]
                 print(f"[DEBUG] Arquivo selecionado: {selected_file}")
                 return str(selected_file)
-                
-        raise SubtitleNotFoundError("Nenhum arquivo de legenda encontrado")
+        
+        print(f"[DEBUG] Conteúdo do diretório: {list(Path(self.temp_dir).glob('*'))}")
+        raise SubtitleNotFoundError("Arquivo de legenda não encontrado")

@@ -11,8 +11,9 @@ class YouTubeValidator:
             'm.youtube.com'
         }
         self._id_pattern = re.compile(
-            r'(?:v=|be\/|embed\/|shorts\/)([a-zA-Z0-9_-]{11})'  # Regex aprimorada
+            r'(?:v=|vi/|e/|shorts/|embed/|v/|be/)([a-zA-Z0-9_-]{11})'  # Suporte para mais padrões de URLs
         )
+
 
 
     def is_valid(self, url: str) -> bool:

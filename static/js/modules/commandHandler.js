@@ -4,6 +4,8 @@ import { adicionarMensagem } from '../chat.js';
 
 export async function handleYoutubeCommand(url, chatContainer) {
     try {
+        console.log("[FRONTEND] Comando /youtube detectado. URL:", url);
+        
         // Exibe mensagem de carregamento com spinner
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'yt-processing-indicator';
@@ -12,6 +14,7 @@ export async function handleYoutubeCommand(url, chatContainer) {
             <span>Processando vídeo...</span>
         `;
         chatContainer.appendChild(loadingDiv);
+
 
         
         // Processar vídeo
@@ -29,14 +32,9 @@ export async function handleYoutubeCommand(url, chatContainer) {
             throw new Error(result.error || 'Erro desconhecido');
         }
     } catch (error) {
-        // Remove o indicador de carregamento se existir
-        const loadingIndicator = chatContainer.querySelector('.yt-processing-indicator');
-        if (loadingIndicator) {
-            chatContainer.removeChild(loadingIndicator);
-        }
-        
-        // Mostra mensagem de erro
+        console.error("[FRONTEND] Erro completo:", error);
         adicionarMensagem(chatContainer, `❌ Erro: ${error.message}`, 'assistant');
+
 
     }
 }

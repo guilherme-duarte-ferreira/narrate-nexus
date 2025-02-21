@@ -146,44 +146,49 @@ def process_with_ai_stream(text):
 @app.route('/process_youtube', methods=['POST'])
 def process_youtube():
     try:
+        print("\n===== INÍCIO DO PROCESSAMENTO YOUTUBE =====")
         data = request.json
         video_url = data.get('url')
-        
-        if not video_url:
-            return jsonify({'error': 'URL do vídeo não fornecida'}), 400
-            
+        print(f"[1/5] URL recebida: {video_url}")
+
         # Validação
         validator = YouTubeValidator()
         if not validator.is_valid(video_url):
-            return jsonify({'error': 'URL do YouTube inválida ou não suportada'}), 400
-            
+            print(f"[2/5] ERRO: URL inválida!")
+            return jsonify({'error': 'URL inválida'}), 400
+        print("[2/5] URL validada com sucesso")
+
         # Download
         downloader = YouTubeDownloader()
         try:
+            print("[3/5] Iniciando download de legendas...")
             subtitle_file = downloader.fetch(video_url)
-        except SubtitleNotFoundError:
-            return jsonify({'error': 'Legendas não encontradas para este vídeo'}), 404
-            
+            print(f"[3/5] Arquivo de legenda encontrado: {subtitle_file}")
+        except SubtitleNotFoundError as e:
+            print(f"[3/5] ERRO: {str(e)}")
+            return jsonify({'error': str(e)}), 404
+
         # Limpeza
         cleaner = SubtitleCleaner()
+        print("[4/5] Iniciando limpeza do texto...")
         cleaned_text = cleaner.sanitize(subtitle_file)
-        
-        # Divisão em chunks (300 palavras por chunk)
-        chunks = split_text(cleaned_text, words_per_chunk=300)
+        print(f"[4/5] Texto limpo (amostra): {cleaned_text[:200]}...")
 
-        
+        # Divisão em chunks
+        print("[5/5] Dividindo em chunks...")
+        chunks = split_text(cleaned_text, words_per_chunk=300)
+        print(f"[5/5] Total de chunks gerados: {len(chunks)}")
+
         return jsonify({
             'status': 'success',
             'chunks': chunks,
             'message': 'Legendas processadas com sucesso'
         })
         
-    except InvalidVideoError as e:
-        return jsonify({'error': f'Erro no vídeo: {str(e)}'}), 400
-    except SubtitleNotFoundError:
-        return jsonify({'error': 'Legendas não encontradas para este vídeo'}), 404
     except Exception as e:
-        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+        print(f"[ERRO CRÍTICO] {traceback.format_exc()}")
+        return jsonify({'error': 'Falha interna'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

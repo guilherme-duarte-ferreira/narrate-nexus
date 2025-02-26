@@ -1,3 +1,4 @@
+
 import json
 import os
 from datetime import datetime
@@ -22,10 +23,7 @@ def create_new_conversation():
         "messages": []
     }
     
-    # Salva a conversa
     save_conversation(conversation)
-    
-    # Atualiza o índice
     update_index(conversation)
     
     return conversation_id
@@ -48,7 +46,6 @@ def update_index(conversation):
     except (FileNotFoundError, json.JSONDecodeError):
         index = []
     
-    # Atualiza ou adiciona a entrada no índice
     entry = {
         "id": conversation["id"],
         "title": conversation.get("title", "Nova conversa"),
@@ -56,11 +53,8 @@ def update_index(conversation):
         "filename": f"conversation_{conversation['id']}.json"
     }
     
-    # Remove entrada antiga se existir
     index = [item for item in index if item["id"] != conversation["id"]]
-    # Adiciona nova entrada
     index.append(entry)
-    # Ordena por timestamp decrescente
     index.sort(key=lambda x: x["timestamp"], reverse=True)
     
     with open(INDEX_FILE, 'w', encoding='utf-8') as f:
@@ -108,9 +102,56 @@ def add_message_to_conversation(conversation_id, content, role):
     conversation["messages"].append(message)
     conversation["timestamp"] = datetime.now().isoformat()
     
-    # Atualiza o título se for a primeira mensagem do usuário
     if role == "user" and len([m for m in conversation["messages"] if m["role"] == "user"]) == 1:
         conversation["title"] = content[:30] + "..." if len(content) > 30 else content
     
     save_conversation(conversation)
     update_index(conversation)
+
+def delete_conversation(conversation_id):
+    """Exclui uma conversa e sua entrada no índice"""
+    filename = f"conversation_{conversation_id}.json"
+    filepath = os.path.join(CONVERSATIONS_DIR, filename)
+    
+    try:
+        # Remove o arquivo da conversa se existir
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        
+        # Remove a entrada do índice
+        try:
+            with open(INDEX_FILE, 'r', encoding='utf-8') as f:
+                index = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            index = []
+            
+        index = [item for item in index if item["id"] != conversation_id]
+        
+        with open(INDEX_FILE, 'w', encoding='utf-8') as f:
+            json.dump(index, f, ensure_ascii=False, indent=2)
+            
+        return True
+    except Exception as e:
+        print(f"Erro ao excluir conversa: {str(e)}")
+        return False
+
+def rename_conversation(conversation_id, new_title):
+    """Renomeia uma conversa existente"""
+    conversation = get_conversation_by_id(conversation_id)
+    
+    if not conversation:
+        return False
+        
+    try:
+        # Atualiza o título
+        conversation["title"] = new_title[:50]  # Limita o tamanho do título
+        
+        # Salva as alterações
+        save_conversation(conversation)
+        update_index(conversation)
+        
+        return True
+    except Exception as e:
+        print(f"Erro ao renomear conversa: {str(e)}")
+        return False
+

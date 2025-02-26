@@ -1,40 +1,78 @@
-
-import { processYoutubeVideo } from './youtube/api.js';
-import { adicionarMensagem } from '../chat.js';
-
-export async function handleYoutubeCommand(url, chatContainer) {
-    try {
-        console.log("[FRONTEND] Comando /youtube detectado. URL:", url);
-        
-        // Exibe mensagem de carregamento com spinner
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'yt-processing-indicator';
-        loadingDiv.innerHTML = `
-            <div class="yt-spinner"></div>
-            <span>Processando vídeo...</span>
-        `;
-        chatContainer.appendChild(loadingDiv);
-
-
-        
-        // Processar vídeo
-        const result = await processYoutubeVideo(url);
-        
-        if (result.status === 'success') {
-            // Remove o indicador de carregamento
-            chatContainer.removeChild(loadingDiv);
+(function() { // IIFE para isolamento de escopo
+    const COMMAND_PREFIX = '/';
+    const COMMANDS = ['/youtube', '/google', '/help', '/settings'];
+    
+    class CommandMenu {
+        constructor() {
+            this.input = document.getElementById('chat-input');
+            if (!this.input) {
+                console.error('[Erro] Elemento #chat-input não encontrado');
+                return;
+            }
             
-            // Exibe cada chunk no chat
-            result.chunks.forEach((chunk, index) => {
-                adicionarMensagem(chatContainer, `📝 Parte ${index + 1}:\n${chunk}`, 'assistant');
-            });
-        } else {
-            throw new Error(result.error || 'Erro desconhecido');
+            this.initMenu();
+            this.setupListeners();
         }
-    } catch (error) {
-        console.error("[FRONTEND] Erro completo:", error);
-        adicionarMensagem(chatContainer, `❌ Erro: ${error.message}`, 'assistant');
 
+        initMenu() {
+            this.menu = document.createElement('div');
+            this.menu.className = 'cmd-menu';
+            document.body.appendChild(this.menu);
+        }
 
+        setupListeners() {
+            this.input.addEventListener('input', () => this.handleInput());
+            document.addEventListener('click', (e) => this.handleOutsideClick(e));
+            this.menu.addEventListener('click', (e) => this.handleMenuClick(e));
+        }
+
+        handleInput() {
+            const text = this.input.value.trim();
+            
+            if (text.startsWith(COMMAND_PREFIX)) {
+                this.positionMenu();
+                this.filterCommands(text);
+            } else {
+                this.hideMenu();
+            }
+        }
+
+        positionMenu() {
+            const rect = this.input.getBoundingClientRect();
+            this.menu.style.top = `${rect.bottom + window.scrollY}px`;
+            this.menu.style.left = `${rect.left}px`;
+            this.menu.classList.add('visible');
+        }
+
+        filterCommands(text) {
+            this.menu.innerHTML = COMMANDS
+                .filter(cmd => cmd.toLowerCase().startsWith(text.toLowerCase()))
+                .map(cmd => `<div class="cmd-item" data-cmd="${cmd}">${cmd}</div>`)
+                .join('');
+        }
+
+        handleMenuClick(e) {
+            const item = e.target.closest('.cmd-item');
+            if (item) {
+                this.input.value = `${item.dataset.cmd} `;
+                this.hideMenu();
+                this.input.focus();
+            }
+        }
+
+        handleOutsideClick(e) {
+            if (!this.input.contains(e.target) && !this.menu.contains(e.target)) {
+                this.hideMenu();
+            }
+        }
+
+        hideMenu() {
+            this.menu.classList.remove('visible');
+        }
     }
-}
+
+    // Inicialização segura após DOM carregado
+    document.addEventListener('DOMContentLoaded', () => {
+        new CommandMenu();
+    });
+})();

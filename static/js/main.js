@@ -1,3 +1,4 @@
+
 import './init.js';
 import { 
     iniciarChat,
@@ -44,6 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
         { command: '/config', description: 'Abrir configurações' }
     ];
 
+    // Prevenir submit padrão dos formulários
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+        });
+    });
+
     // Inicializar barra de entrada da tela inicial
     if (welcomeInput && welcomeCommandMenu) {
         welcomeBar = initializeInputBar(
@@ -52,19 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
             COMMANDS.map(c => c.command)
         );
 
-        welcomeForm?.addEventListener('customSubmit', async (e) => {
-            const message = e.detail.message;
+        welcomeForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = welcomeInput.value.trim();
+            if (!message) return;
             
             // Criar nova conversa se não existir
             if (!window.conversaAtual) {
-                const novaConversa = {
-                    id: Date.now().toString(),
-                    titulo: 'Nova conversa',
-                    mensagens: []
-                };
-                window.conversas.unshift(novaConversa);
-                window.conversaAtual = novaConversa;
-                atualizarListaConversas();
+                criarNovaConversa();
             }
 
             // Limpar barra de boas-vindas antes de trocar de tela
@@ -75,11 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatContainer,
                 document.querySelector('.input-container')
             );
-
-            adicionarMensagem(chatContainer, message, 'user');
-            adicionarMensagemAoHistorico(message, 'user');
             
             await enviarMensagem(message, welcomeInput, chatContainer, sendBtn, stopBtn);
+            atualizarListaConversas(); // Atualizar histórico após enviar mensagem
         });
     }
 
@@ -91,31 +92,23 @@ document.addEventListener('DOMContentLoaded', () => {
             COMMANDS.map(c => c.command)
         );
 
-        chatForm?.addEventListener('customSubmit', async (e) => {
-            const message = e.detail.message;
+        chatForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
             
-            // Verificar se é comando do YouTube
-            if (message.startsWith('/youtube ')) {
-                const url = message.split(' ')[1];
-                if (url) {
-                    await handleYoutubeCommand(url, chatContainer);
-                } else {
-                    adicionarMensagem(chatContainer, "Por favor, forneça uma URL do YouTube válida", 'assistant');
-                }
-                chatBar?.clear();
-                return;
-            }
-            
-            adicionarMensagem(chatContainer, message, 'user');
-            adicionarMensagemAoHistorico(message, 'user');
             chatBar.clear();
-            
             await enviarMensagem(message, chatInput, chatContainer, sendBtn, stopBtn);
+            atualizarListaConversas(); // Atualizar histórico após enviar mensagem
         });
     }
 
     // Configurar botão de nova conversa
     newChatBtn?.addEventListener('click', () => {
+        if (window.conversaAtual) {
+            atualizarListaConversas(); // Atualizar histórico antes de criar nova conversa
+        }
+        
         // Limpar barra do chat antes de trocar de tela
         chatBar?.destroy();
         
@@ -145,6 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar lista de conversas
     atualizarListaConversas();
+
+    // Evento global para atualização do histórico
+    window.addEventListener('conversaAtualizada', () => {
+        atualizarListaConversas();
+    });
 });
 
 // Expor funções globalmente

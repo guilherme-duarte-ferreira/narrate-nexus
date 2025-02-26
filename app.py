@@ -11,10 +11,6 @@ from utils.chat_storage import (
     get_conversation_by_id,
     get_conversation_history
 )
-from core.youtube.validator import YouTubeValidator
-from core.youtube.downloader import YouTubeDownloader
-from core.youtube.cleaner import SubtitleCleaner
-from core.youtube.exceptions import SubtitleNotFoundError, InvalidVideoError
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sua_chave_secreta_aqui'
@@ -87,6 +83,52 @@ def save_message():
         print(f"Erro ao salvar mensagem: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/process_youtube', methods=['POST'])
+def process_youtube():
+    try:
+        data = request.json
+        video_url = data.get('video_url')
+        conversation_id = data.get('conversation_id')
+        comando = data.get('comando')  # Novo: pegar o comando original
+        
+        if not video_url:
+            return jsonify({'error': 'URL não fornecida'}), 400
+            
+        # Baixar legendas e obter título
+        subtitle_file, video_title = youtube_handler.download_subtitles(video_url)
+        if not subtitle_file:
+            return jsonify({'error': 'Não foi possível baixar as legendas deste vídeo'}), 404
+            
+        # Limpar legendas
+        cleaned_text = youtube_handler.clean_subtitles(subtitle_file)
+        if not cleaned_text:
+            return jsonify({'error': 'Erro ao processar legendas'}), 500
+
+        # Salvar comando do usuário na conversa
+        if conversation_id and comando:
+            add_message_to_conversation(
+                conversation_id,
+                comando,
+                "user"
+            )
+
+        # Salvar transcrição com título na conversa
+        formatted_response = f"📹 {video_title}\n\n{cleaned_text}"
+        if conversation_id:
+            add_message_to_conversation(
+                conversation_id,
+                formatted_response,
+                "assistant"
+            )
+            
+        return jsonify({
+            'text': formatted_response,
+            'title': video_title
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def process_with_ai(text):
     try:
         payload = {
@@ -142,53 +184,6 @@ def process_with_ai_stream(text):
         print(f"[Debug] Erro na requisição HTTP: {str(e)}")
     except Exception as e:
         print(f"[Debug] Erro inesperado: {str(e)}")
-
-@app.route('/process_youtube', methods=['POST'])
-def process_youtube():
-    try:
-        print("\n===== INÍCIO DO PROCESSAMENTO YOUTUBE =====")
-        data = request.json
-        video_url = data.get('url')
-        print(f"[1/5] URL recebida: {video_url}")
-
-        # Validação
-        validator = YouTubeValidator()
-        if not validator.is_valid(video_url):
-            print(f"[2/5] ERRO: URL inválida!")
-            return jsonify({'error': 'URL inválida'}), 400
-        print("[2/5] URL validada com sucesso")
-
-        # Download
-        downloader = YouTubeDownloader()
-        try:
-            print("[3/5] Iniciando download de legendas...")
-            subtitle_file = downloader.fetch(video_url)
-            print(f"[3/5] Arquivo de legenda encontrado: {subtitle_file}")
-        except SubtitleNotFoundError as e:
-            print(f"[3/5] ERRO: {str(e)}")
-            return jsonify({'error': str(e)}), 404
-
-        # Limpeza
-        cleaner = SubtitleCleaner()
-        print("[4/5] Iniciando limpeza do texto...")
-        cleaned_text = cleaner.sanitize(subtitle_file)
-        print(f"[4/5] Texto limpo (amostra): {cleaned_text[:200]}...")
-
-        # Divisão em chunks
-        print("[5/5] Dividindo em chunks...")
-        chunks = split_text(cleaned_text, words_per_chunk=300)
-        print(f"[5/5] Total de chunks gerados: {len(chunks)}")
-
-        return jsonify({
-            'status': 'success',
-            'chunks': chunks,
-            'message': 'Legendas processadas com sucesso'
-        })
-        
-    except Exception as e:
-        print(f"[ERRO CRÍTICO] {traceback.format_exc()}")
-        return jsonify({'error': 'Falha interna'}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)

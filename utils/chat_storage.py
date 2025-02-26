@@ -1,4 +1,3 @@
-
 import json
 import os
 from datetime import datetime
@@ -153,7 +152,9 @@ def delete_conversation(conversation_id):
         if os.path.exists(filepath):
             os.remove(filepath)
             print(f"[DEBUG] Arquivo da conversa removido: {filepath}")
-        
+        else:
+            print(f"[DEBUG] Arquivo não encontrado: {filepath}")
+            
         # Remove a entrada do índice
         try:
             with open(INDEX_FILE, 'r', encoding='utf-8') as f:
@@ -162,8 +163,10 @@ def delete_conversation(conversation_id):
             print("[DEBUG] Arquivo de índice não encontrado ou inválido")
             index = []
             
+        # Filtra a conversa do índice
         index = [item for item in index if item["id"] != conversation_id]
         
+        # Salva o índice atualizado
         with open(INDEX_FILE, 'w', encoding='utf-8') as f:
             json.dump(index, f, ensure_ascii=False, indent=2)
         
@@ -183,14 +186,20 @@ def rename_conversation(conversation_id, new_title):
         return False
         
     try:
-        # Atualiza o título
-        conversation["title"] = new_title[:50]  # Limita o tamanho do título
+        # Atualiza o título com validação
+        if not new_title or not new_title.strip():
+            print("[ERRO] Título inválido")
+            return False
+            
+        conversation["title"] = new_title.strip()[:50]  # Limita o tamanho do título
         
         # Salva as alterações
         if not save_conversation(conversation):
+            print("[ERRO] Falha ao salvar conversa")
             return False
             
         if not update_index(conversation):
+            print("[ERRO] Falha ao atualizar índice")
             return False
         
         print("[DEBUG] Conversa renomeada com sucesso")
@@ -198,4 +207,3 @@ def rename_conversation(conversation_id, new_title):
     except Exception as e:
         print(f"[ERRO] Falha ao renomear conversa: {str(e)}")
         return False
-

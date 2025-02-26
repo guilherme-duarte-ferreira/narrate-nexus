@@ -2,6 +2,8 @@
 import { adicionarMensagem } from './chatUI.js';
 
 export function carregarConversa(id) {
+    console.log('[DEBUG] Carregando conversa:', id);
+    
     fetch(`/get_conversation/${id}`)
         .then(response => {
             if (!response.ok) throw new Error('HTTP error: ' + response.status);
@@ -67,6 +69,8 @@ export function carregarConversa(id) {
 }
 
 export function atualizarListaConversas() {
+    console.log('[DEBUG] Atualizando lista de conversas');
+    
     const chatList = document.querySelector('.chat-list');
     if (!chatList) {
         console.error('[ERRO] Chat list não encontrada');
@@ -80,6 +84,8 @@ export function atualizarListaConversas() {
             conversas.forEach(conversa => {
                 const conversaElement = document.createElement('div');
                 conversaElement.className = 'chat-item';
+                conversaElement.dataset.id = conversa.id;
+                
                 if (window.conversaAtual && window.conversaAtual.id === conversa.id) {
                     conversaElement.classList.add('active');
                 }
@@ -89,10 +95,10 @@ export function atualizarListaConversas() {
                 conversaElement.innerHTML = `
                     <span>${titulo}</span>
                     <div class="action-buttons">
-                        <button class="action-btn rename-btn" data-id="${conversa.id}">
+                        <button class="action-btn rename-btn" data-id="${conversa.id}" title="Renomear">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete-btn" data-id="${conversa.id}">
+                        <button class="action-btn delete-btn" data-id="${conversa.id}" title="Excluir">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -100,8 +106,33 @@ export function atualizarListaConversas() {
                 
                 chatList.appendChild(conversaElement);
             });
+            
+            // Adiciona delegação de eventos
+            if (!chatList.hasAttribute('data-event-bound')) {
+                chatList.setAttribute('data-event-bound', 'true');
+                
+                chatList.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.action-btn');
+                    if (!btn) return;
+                    
+                    const id = btn.dataset.id;
+                    if (!id) {
+                        console.error('[ERRO] ID da conversa não encontrado');
+                        return;
+                    }
+                    
+                    if (btn.classList.contains('rename-btn')) {
+                        renomearConversa(id);
+                    } else if (btn.classList.contains('delete-btn')) {
+                        excluirConversa(id);
+                    }
+                });
+            }
         })
-        .catch(error => console.error('Erro ao atualizar lista de conversas:', error));
+        .catch(error => {
+            console.error('Erro ao atualizar lista de conversas:', error);
+            alert('Erro ao atualizar lista de conversas');
+        });
 }
 
 export function criarNovaConversa() {
@@ -149,37 +180,59 @@ export function adicionarMensagemAoHistorico(mensagem, tipo) {
 }
 
 export function renomearConversa(id) {
+    console.log('[DEBUG] Tentando renomear conversa:', id);
+    
     const conversa = window.conversas?.find(c => c.id === id);
-    if (!conversa) return;
+    if (!conversa) {
+        console.error('[ERRO] Conversa não encontrada para renomear');
+        return;
+    }
 
     const novoTitulo = prompt('Digite o novo título da conversa:', conversa.title);
-    if (!novoTitulo || !novoTitulo.trim()) return;
+    if (!novoTitulo || !novoTitulo.trim()) {
+        console.log('[DEBUG] Operação de renomeação cancelada pelo usuário');
+        return;
+    }
 
     fetch(`/rename_conversation/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: novoTitulo.trim() })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         if (data.error) throw new Error(data.error);
+        console.log('[DEBUG] Conversa renomeada com sucesso');
         atualizarListaConversas();
     })
     .catch(error => {
-        console.error('Erro ao renomear conversa:', error);
-        alert('Erro ao renomear conversa');
+        console.error('[ERRO] Falha ao renomear conversa:', error);
+        alert('Erro ao renomear conversa: ' + error.message);
     });
 }
 
 export function excluirConversa(id) {
-    if (!confirm('Tem certeza que deseja excluir esta conversa?')) return;
+    console.log('[DEBUG] Tentando excluir conversa:', id);
+    
+    if (!confirm('Tem certeza que deseja excluir esta conversa?')) {
+        console.log('[DEBUG] Operação de exclusão cancelada pelo usuário');
+        return;
+    }
 
     fetch(`/delete_conversation/${id}`, {
         method: 'DELETE'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         if (data.error) throw new Error(data.error);
+        
+        console.log('[DEBUG] Conversa excluída com sucesso');
         
         if (window.conversaAtual?.id === id) {
             window.conversaAtual = null;
@@ -196,7 +249,8 @@ export function excluirConversa(id) {
         atualizarListaConversas();
     })
     .catch(error => {
-        console.error('Erro ao excluir conversa:', error);
-        alert('Erro ao excluir conversa');
+        console.error('[ERRO] Falha ao excluir conversa:', error);
+        alert('Erro ao excluir conversa: ' + error.message);
     });
 }
+

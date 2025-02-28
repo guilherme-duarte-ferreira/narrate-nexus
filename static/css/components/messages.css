@@ -1,4 +1,5 @@
 
+/* Botões de ação nas mensagens */
 .message .action-btn {
     background: transparent;
     border: none;
@@ -65,21 +66,86 @@
     font-size: 0.9em;
 }
 
-.message-content pre {
-    background-color: var(--action-hover);
-    padding: 1em;
+/* Blocos de código estilo terminal */
+.message-content .code-block {
+    background-color: #1e1e1e; /* Fundo preto estilo terminal */
+    color: #ffffff; /* Texto branco */
+    padding: 15px;
     border-radius: 5px;
-    overflow-x: auto;
-    margin: 1rem 0;
+    font-family: 'Courier New', Courier, monospace;
+    position: relative;
+    margin: 1em 0;
+    overflow-x: auto; /* Para códigos longos */
+    border: 1px solid #333;
 }
 
-.message-content pre code {
-    background-color: transparent;
+.message-content .code-block code {
+    background: none;
     padding: 0;
+    color: #f8f8f2;
     display: block;
     white-space: pre;
 }
 
+/* Botão de copiar código */
+.code-copy-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #444;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.code-copy-btn:hover {
+    background: #666;
+}
+
+/* Realce de sintaxe para blocos de código */
+.message-content .keyword {
+    color: #569cd6; /* Azul para palavras-chave */
+}
+
+.message-content .string {
+    color: #ce9178; /* Laranja para strings */
+}
+
+.message-content .number {
+    color: #b5cea8; /* Verde claro para números */
+}
+
+.message-content .comment {
+    color: #6a9955; /* Verde escuro para comentários */
+}
+
+/* Estilos para tabelas Markdown */
+.markdown-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.markdown-table th, 
+.markdown-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+}
+
+.markdown-table th {
+    background-color: var(--action-hover);
+    font-weight: bold;
+}
+
+.markdown-table tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para citações */
 .message-content blockquote {
     border-left: 4px solid var(--text-secondary);
     margin: 0.5rem 0;
@@ -89,6 +155,7 @@
     border-radius: 0 4px 4px 0;
 }
 
+/* Estilos para listas */
 .message-content ul, 
 .message-content ol {
     padding-left: 1.5rem;
@@ -100,6 +167,7 @@
     margin-bottom: 0.25rem;
 }
 
+/* Estilos para links */
 .message-content a {
     color: #3498db;
     text-decoration: none;
@@ -109,25 +177,7 @@
     text-decoration: underline;
 }
 
-/* Realce de sintaxe para blocos de código */
-.message-content .keyword {
-    color: #c678dd;
-}
-
-.message-content .string {
-    color: #98c379;
-}
-
-.message-content .number {
-    color: #d19a66;
-}
-
-.message-content .comment {
-    color: #5c6370;
-    font-style: italic;
-}
-
-/* Estilo para mensagens específicas */
+/* Estilos para mensagens específicas */
 .message.assistant .message-content {
     color: var(--text-primary);
 }

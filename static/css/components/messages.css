@@ -123,27 +123,37 @@
 }
 
 /* Estilos para tabelas Markdown */
-.markdown-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
+.chat-container .message-content table {
+  width: 100%; /* Ocupa toda a largura disponível */
+  border-collapse: collapse; /* Une as bordas das células */
+  margin: 1rem 0; /* Espaço acima e abaixo da tabela */
 }
 
-.markdown-table th, 
-.markdown-table td {
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    text-align: left;
+.chat-container .message-content th,
+.chat-container .message-content td {
+  border: 1px solid var(--border-color); /* Bordas visíveis */
+  padding: 0.75rem; /* Espaço interno nas células */
+  text-align: left; /* Alinhamento à esquerda */
 }
 
-.markdown-table th {
-    background-color: var(--action-hover);
-    font-weight: bold;
+.chat-container .message-content th {
+  background-color: var(--action-hover); /* Fundo leve para cabeçalhos */
+  font-weight: bold; /* Cabeçalhos em negrito */
 }
 
-.markdown-table tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.05);
+.chat-container .message-content tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.05); /* Efeito zebrado nas linhas pares */
 }
+
+/* Ajuste para tema escuro, se necessário */
+[data-theme="dark"] .chat-container .message-content th {
+  background-color: var(--action-hover);
+}
+
+[data-theme="dark"] .chat-container .message-content tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
 
 /* Estilos para citações */
 .message-content blockquote {

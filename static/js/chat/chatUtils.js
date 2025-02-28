@@ -40,6 +40,24 @@ export function copiarMensagem(button) {
         });
 }
 
+export function copiarCodigo(button) {
+    console.log('[DEBUG] Copiando código...');
+    const pre = button.closest('pre');
+    const code = pre.querySelector('code').textContent;
+    
+    navigator.clipboard.writeText(code)
+        .then(() => {
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Erro ao copiar código:', err);
+            alert('Não foi possível copiar o código');
+        });
+}
+
 export function regenerarResposta(button) {
     console.log('[DEBUG] Regenerando resposta...');
     const mensagemOriginal = button.closest('.message').previousElementSibling;

@@ -1,8 +1,25 @@
 
 export function escapeHTML(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.innerText = text;
     return div.innerHTML;
+}
+
+export function processLinks(text) {
+    // Processar links markdown [texto](url)
+    return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+        // Verificar se é uma URL válida e sanitizar
+        let safeUrl = url.trim();
+        
+        // Verificar se começa com http:// ou https://
+        if (!safeUrl.match(/^https?:\/\//i)) {
+            safeUrl = 'https://' + safeUrl; // Adicionar https:// se não existir
+        }
+        
+        // Retornar o link HTML com atributos de segurança
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
 }
 
 export function copiarMensagem(button) {

@@ -1,5 +1,5 @@
 
-import { escapeHTML } from './chatUtils.js';
+import { escapeHTML, processLinks } from './chatUtils.js';
 
 export function iniciarChat(welcomeScreen, chatContainer, inputContainer) {
     welcomeScreen.style.display = 'none';
@@ -55,24 +55,26 @@ export function adicionarMensagem(chatContainer, texto, tipo) {
 }
 
 function formatarMensagemMarkdown(texto) {
-    // Aplicar formatação básica de Markdown manualmente
+    // Utilizar uma função de escape HTML para segurança
     let formattedText = escapeHTML(texto);
+    
+    // Processar blocos de código antes de outros elementos para evitar conflitos
+    formattedText = formattedText.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, language, code) {
+        return `<pre class="code-block" data-language="${language}"><code>${code}</code></pre>`;
+    });
     
     // Headers
     formattedText = formattedText.replace(/^### (.*$)/gm, '<h3>$1</h3>');
     formattedText = formattedText.replace(/^## (.*$)/gm, '<h2>$1</h2>');
     formattedText = formattedText.replace(/^# (.*$)/gm, '<h1>$1</h1>');
     
-    // Bold
+    // Bold - permitir ** e __ para negrito
     formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formattedText = formattedText.replace(/__(.*?)__/g, '<strong>$1</strong>');
     
-    // Italic
+    // Italic - permitir * e _ para itálico
     formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Code blocks with language specification
-    formattedText = formattedText.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, language, code) {
-        return `<pre class="code-block" data-language="${language}"><code>${code}</code></pre>`;
-    });
+    formattedText = formattedText.replace(/_(.*?)_/g, '<em>$1</em>');
     
     // Inline code
     formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -80,36 +82,62 @@ function formatarMensagemMarkdown(texto) {
     // Blockquotes
     formattedText = formattedText.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
     
-    // Lists
+    // Lists - melhorar o processamento de listas
+    // Unordered lists
     formattedText = formattedText.replace(/^\* (.*$)/gm, '<ul><li>$1</li></ul>');
     formattedText = formattedText.replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>');
+    formattedText = formattedText.replace(/^\+ (.*$)/gm, '<ul><li>$1</li></ul>');
+    
+    // Ordered lists
     formattedText = formattedText.replace(/^(\d+)\. (.*$)/gm, '<ol><li>$2</li></ol>');
     
-    // Fix nested lists creating multiple ul/ol tags
+    // Combinar listas contíguas
     formattedText = formattedText.replace(/<\/ul>\s*<ul>/g, '');
     formattedText = formattedText.replace(/<\/ol>\s*<ol>/g, '');
     
-    // Links
-    formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    // Links - usar função específica para processar links
+    formattedText = processLinks(formattedText);
     
-    // Line breaks
+    // Horizontal rule
+    formattedText = formattedText.replace(/^\s*---\s*$/gm, '<hr>');
+    formattedText = formattedText.replace(/^\s*\*\*\*\s*$/gm, '<hr>');
+    
+    // Imagens - somente se aplicável ao seu projeto
+    formattedText = formattedText.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="markdown-image">');
+    
+    // Line breaks finais - fazer tratamento cuidadoso de quebras de linha
+    // Preservar quebras de linha em markdown (duas quebras = parágrafo)
+    formattedText = formattedText.replace(/\n\n/g, '</p><p>');
+    // Quebras de linha simples
     formattedText = formattedText.replace(/\n/g, '<br>');
+    
+    // Envolver em parágrafo se não começar com uma tag HTML
+    if (!formattedText.trim().startsWith('<')) {
+        formattedText = `<p>${formattedText}</p>`;
+    }
+    
+    // Normalizar parágrafos vazios
+    formattedText = formattedText.replace(/<p>\s*<\/p>/g, '');
     
     return formattedText;
 }
 
 function realcarSintaxeCodigo(container) {
-    // Função simples para adicionar classes aos elementos de código
-    // Em uma implementação mais avançada, você poderia usar uma biblioteca como highlight.js
+    // Função para adicionar classes aos elementos de código
     const codeBlocks = container.querySelectorAll('pre code');
     codeBlocks.forEach(block => {
         const language = block.parentElement.dataset.language || '';
         block.classList.add(`language-${language}`);
         
-        // Adicionar formatação básica de sintaxe (isso é muito simplificado)
+        // Adicionar formatação básica de sintaxe
         // Palavras-chave comuns
-        const keywords = ['function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 
-                          'export', 'const', 'let', 'var', 'def', 'print', 'from', 'async', 'await'];
+        const keywords = [
+            'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 
+            'export', 'const', 'let', 'var', 'def', 'print', 'from', 'async', 'await',
+            'try', 'catch', 'switch', 'case', 'break', 'default', 'continue', 'throw',
+            'extends', 'implements', 'interface', 'enum', 'this', 'new', 'true', 'false',
+            'null', 'undefined', 'in', 'of', 'do', 'static', 'public', 'private', 'protected'
+        ];
         
         keywords.forEach(keyword => {
             const regex = new RegExp(`\\b${keyword}\\b`, 'g');
@@ -119,21 +147,28 @@ function realcarSintaxeCodigo(container) {
             );
         });
         
-        // Strings
+        // Strings (melhorar o regex para capturar as aspas corretamente)
         block.innerHTML = block.innerHTML.replace(
-            /(["'])(.*?)\1/g, 
+            /(['"])(.*?)\1/g, 
             '<span class="string">$&</span>'
         );
         
         // Números
         block.innerHTML = block.innerHTML.replace(
-            /\b(\d+)\b/g, 
+            /\b(\d+(\.\d+)?)\b/g, 
             '<span class="number">$&</span>'
         );
         
-        // Comentários (simplificado)
+        // Comentários (melhorar para capturar comentários multilinhas)
+        // Comentários de linha única
         block.innerHTML = block.innerHTML.replace(
             /(\/\/.*|#.*)/g, 
+            '<span class="comment">$&</span>'
+        );
+        
+        // Comentários multilinhas (básico, pode precisar de regex mais robusto)
+        block.innerHTML = block.innerHTML.replace(
+            /(\/\*[\s\S]*?\*\/)/g, 
             '<span class="comment">$&</span>'
         );
     });

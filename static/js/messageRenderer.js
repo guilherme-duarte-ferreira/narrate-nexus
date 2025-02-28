@@ -19,45 +19,10 @@ function escapeHTML(str) {
 export function renderMessage(text) {
     if (!text) return '';
     
-    // Escapar o HTML para segurança
-    let formattedText = escapeHTML(text);
-    
-    // Processar blocos de código com linguagem
-    formattedText = formattedText.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, language, code) {
-        return `<pre class="code-block" data-language="${language}"><button class="code-copy-btn" onclick="window.copiarCodigo(this)"><i class="fas fa-copy"></i></button><code>${code}</code></pre>`;
-    });
-    
-    // Processar tabelas
-    formattedText = processarTabelas(formattedText);
-    
-    // Headers
-    formattedText = formattedText.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-    formattedText = formattedText.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-    formattedText = formattedText.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-    
-    // Bold
-    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Italic
-    formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Inline code
-    formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Blockquotes
-    formattedText = formattedText.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
-    
-    // Lists
-    formattedText = processarListas(formattedText);
-    
-    // Links
-    formattedText = formattedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    // Line breaks
-    formattedText = formattedText.replace(/\n/g, '<br>');
-    
-    return formattedText;
+    // Processa o texto usando Marked.js
+    return marked.parse(text);
 }
+
 
 /**
  * Processa tabelas Markdown e converte para HTML

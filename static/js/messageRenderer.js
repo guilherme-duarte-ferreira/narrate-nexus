@@ -71,10 +71,9 @@ function processarTabelas(text) {
     let linhasTabela = [];
     
     for (let i = 0; i < linhas.length; i++) {
-        const linha = linhas[i];
+        let linha = linhas[i].trim(); // Remove espaços extras no início e fim
         
-        // Verifica se é uma linha de tabela
-        if (linha.match(/^\|(.+)\|$/)) {
+        if (linha.startsWith('|') && linha.endsWith('|')) {
             if (!iniciouTabela) {
                 iniciouTabela = true;
             }
@@ -82,27 +81,20 @@ function processarTabelas(text) {
             continue;
         }
         
-        // Se não é linha de tabela mas estávamos em uma tabela
         if (iniciouTabela) {
-            // Finaliza e processa a tabela
-            if (linhasTabela.length >= 2) {
+            if (linhasTabela.length >= 3 && isSeparadorTabela(linhasTabela[1])) {
                 resultado.push(criarTabelaHTML(linhasTabela));
             } else {
-                // Se não tem linhas suficientes, adiciona as linhas normalmente
                 resultado = resultado.concat(linhasTabela);
             }
-            
-            // Reset
             iniciouTabela = false;
             linhasTabela = [];
         }
         
-        // Adiciona linha normal
-        resultado.push(linha);
+        resultado.push(linhas[i]); // Mantém a linha original no resultado
     }
     
-    // Processa tabela no final do texto, se houver
-    if (iniciouTabela && linhasTabela.length >= 2) {
+    if (iniciouTabela && linhasTabela.length >= 3 && isSeparadorTabela(linhasTabela[1])) {
         resultado.push(criarTabelaHTML(linhasTabela));
     } else if (linhasTabela.length > 0) {
         resultado = resultado.concat(linhasTabela);
@@ -110,6 +102,12 @@ function processarTabelas(text) {
     
     return resultado.join('\n');
 }
+
+function isSeparadorTabela(linha) {
+    const colunas = linha.split('|').slice(1, -1);
+    return colunas.every(col => col.trim().match(/^[:-]+$/));
+}
+
 
 /**
  * Cria tabela HTML a partir de linhas de tabela Markdown
@@ -119,27 +117,20 @@ function processarTabelas(text) {
 function criarTabelaHTML(linhas) {
     let tabelaHTML = '<table class="markdown-table">\n';
     
-    // Processa cabeçalho
-    const cabecalho = linhas[0];
-    const colunas = cabecalho.split('|').slice(1, -1).map(col => col.trim());
-    
+    const cabecalho = linhas[0].trim().split('|').slice(1, -1).map(col => col.trim());
     tabelaHTML += '<thead>\n<tr>\n';
-    colunas.forEach(col => {
-        tabelaHTML += `<th>${col}</th>\n`;
+    cabecalho.forEach(col => {
+        tabelaHTML += `<th>${col || '&nbsp;'}</th>\n`; // Usa &nbsp; para células vazias
     });
     tabelaHTML += '</tr>\n</thead>\n';
     
-    // Ignora a linha de separação (segunda linha)
-    
-    // Processa linhas de dados (a partir da terceira linha)
     if (linhas.length > 2) {
         tabelaHTML += '<tbody>\n';
         for (let i = 2; i < linhas.length; i++) {
-            const colunas = linhas[i].split('|').slice(1, -1).map(col => col.trim());
-            
+            const colunas = linhas[i].trim().split('|').slice(1, -1).map(col => col.trim());
             tabelaHTML += '<tr>\n';
             colunas.forEach(col => {
-                tabelaHTML += `<td>${col}</td>\n`;
+                tabelaHTML += `<td>${col || '&nbsp;'}</td>\n`; // Usa &nbsp; para células vazias
             });
             tabelaHTML += '</tr>\n';
         }
@@ -149,6 +140,7 @@ function criarTabelaHTML(linhas) {
     tabelaHTML += '</table>';
     return tabelaHTML;
 }
+
 
 /**
  * Processa listas Markdown e converte para HTML

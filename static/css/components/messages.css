@@ -1,5 +1,4 @@
 
-
 .message .action-btn {
     background: transparent;
     border: none;
@@ -67,8 +66,11 @@
 }
 
 .message-content pre {
+    background-color: var(--action-hover);
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
     margin: 1rem 0;
-    position: relative;
 }
 
 .message-content pre code {
@@ -107,98 +109,21 @@
     text-decoration: underline;
 }
 
-/* Estilo Terminal para Blocos de Código */
-.code-block {
-    background-color: #1e1e1e; /* Fundo preto estilo terminal */
-    color: #ffffff; /* Texto branco */
-    padding: 15px;
-    border-radius: 5px;
-    font-family: 'Courier New', Courier, monospace;
-    position: relative;
-    margin: 1em 0;
-    overflow-x: auto; /* Para códigos longos */
-    border: 1px solid #333;
-}
-
-.code-block code {
-    background: none;
-    padding: 0;
-}
-
-/* Destaque de sintaxe para blocos de código */
-.message-content .keyword {
-    color: #569cd6; /* Azul para palavras-chave */
-}
-
-.message-content .string {
-    color: #ce9178; /* Laranja para strings */
-}
-
-.message-content .number {
-    color: #b5cea8; /* Verde claro para números */
-}
-
-.message-content .comment {
-    color: #6a9955; /* Verde escuro para comentários */
-}
-
-/* Botão de copiar código */
-.code-copy-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #444;
-    color: white;
-    border: none;
-    padding: 5px;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 0.8em;
-}
-
-.code-copy-btn:hover {
-    background: #666;
-}
-
-/* Estilos para tabelas */
-.markdown-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
-}
-
-.markdown-table th, 
-.markdown-table td {
-    border: 1px solid #ddd; /* Borda cinza clara */
-    padding: 8px;
-    text-align: center;
-}
-
-.markdown-table th {
-    background-color: #f2f2f2; /* Fundo cinza claro no cabeçalho */
-    font-weight: bold;
-    color: #333; /* Texto escuro para contrastar com o fundo claro */
-}
-
-.markdown-table tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.05); /* Linhas alternadas com fundo levemente mais escuro */
-}
-
 /* Realce de sintaxe para blocos de código */
 .message-content .keyword {
-    color: #569cd6;
+    color: #c678dd;
 }
 
 .message-content .string {
-    color: #ce9178;
+    color: #98c379;
 }
 
 .message-content .number {
-    color: #b5cea8;
+    color: #d19a66;
 }
 
 .message-content .comment {
-    color: #6a9955;
+    color: #5c6370;
     font-style: italic;
 }
 
@@ -210,4 +135,3 @@
 .message.user .message-content {
     color: var(--text-primary);
 }
-

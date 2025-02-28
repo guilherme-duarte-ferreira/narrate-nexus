@@ -25,6 +25,7 @@ export function adicionarMensagem(chatContainer, texto, tipo) {
     if (tipo === 'assistant') {
         // Aplicar formatação Markdown apenas nas mensagens do assistente
         conteudoHtml = formatarMensagemMarkdown(texto);
+        console.log('[DEBUG] HTML gerado:', conteudoHtml);
     } else {
         // Para mensagens do usuário, apenas escape HTML e quebras de linha
         conteudoHtml = `<p>${escapeHTML(texto).replace(/\n/g, '<br>')}</p>`;
@@ -82,18 +83,26 @@ function formatarMensagemMarkdown(texto) {
     // Blockquotes
     formattedText = formattedText.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
     
-    // Lists - melhorar o processamento de listas
-    // Unordered lists
-    formattedText = formattedText.replace(/^\* (.*$)/gm, '<ul><li>$1</li></ul>');
-    formattedText = formattedText.replace(/^- (.*$)/gm, '<ul><li>$1</li></ul>');
-    formattedText = formattedText.replace(/^\+ (.*$)/gm, '<ul><li>$1</li></ul>');
+    // Melhorar o processamento de listas
+    // Listas não ordenadas - agrupar itens em um único <ul>
+    formattedText = formattedText.replace(/^((\*|-|\+) .*\n?)+/gm, function(match) {
+        const items = match.trim().split('\n').map(line => {
+            // Extrair o conteúdo após o marcador (* - +)
+            const content = line.replace(/^(\*|-|\+)\s+/, '').trim();
+            return `<li>${content}</li>`;
+        }).join('');
+        return `<ul>${items}</ul>`;
+    });
     
-    // Ordered lists
-    formattedText = formattedText.replace(/^(\d+)\. (.*$)/gm, '<ol><li>$2</li></ol>');
-    
-    // Combinar listas contíguas
-    formattedText = formattedText.replace(/<\/ul>\s*<ul>/g, '');
-    formattedText = formattedText.replace(/<\/ol>\s*<ol>/g, '');
+    // Listas ordenadas - agrupar itens em um único <ol>
+    formattedText = formattedText.replace(/^(\d+\. .*\n?)+/gm, function(match) {
+        const items = match.trim().split('\n').map(line => {
+            // Extrair o conteúdo após o número e ponto
+            const content = line.replace(/^\d+\.\s+/, '').trim();
+            return `<li>${content}</li>`;
+        }).join('');
+        return `<ol>${items}</ol>`;
+    });
     
     // Links - usar função específica para processar links
     formattedText = processLinks(formattedText);

@@ -65,6 +65,11 @@ function formatarMensagemMarkdown(texto) {
     // Utilizar uma função de escape HTML para segurança
     let formattedText = escapeHTML(texto);
     
+    // Processar blocos de código antes de outros elementos para evitar conflitos
+    formattedText = formattedText.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, language, code) {
+        return `<pre class="code-block" data-language="${language}"><code>${code}</code></pre>`;
+    });
+    
     // Processar tabelas
     const linhas = formattedText.split('\n');
     let tabelaAtual = [];
@@ -102,11 +107,6 @@ function formatarMensagemMarkdown(texto) {
     }
     
     formattedText = resultado.join('\n');
-    
-    // Processar blocos de código antes de outros elementos para evitar conflitos
-    formattedText = formattedText.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, language, code) {
-        return `<pre class="code-block" data-language="${language}"><code>${code}</code></pre>`;
-    });
     
     // Headers
     formattedText = formattedText.replace(/^### (.*$)/gm, '<h3>$1</h3>');

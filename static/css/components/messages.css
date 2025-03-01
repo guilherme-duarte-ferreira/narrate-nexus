@@ -1,4 +1,3 @@
-
 /* Botões de ação nas mensagens */
 .message .action-btn {
     background: transparent;
@@ -126,13 +125,15 @@
 .chat-container .message-content table {
   width: 100%; /* Ocupa toda a largura disponível */
   border-collapse: collapse; /* Une as bordas das células */
-  margin: 1rem 0; /* Espaço acima e abaixo da tabela */
+  margin: 0.25rem 0; /* Espaço ainda mais reduzido acima e abaixo */
 }
 
 .chat-container .message-content th,
 .chat-container .message-content td {
-  border: 1px solid var(--border-color); /* Bordas visíveis */
-  padding: 0.75rem; /* Espaço interno nas células */
+  border: 1px solid var(--border-color); /* Mantém as bordas visíveis */
+  padding: 0.2rem; /* Espaço interno reduzido */
+
+
   text-align: left; /* Alinhamento à esquerda */
 }
 
@@ -153,7 +154,6 @@
 [data-theme="dark"] .chat-container .message-content tr:nth-child(even) {
   background-color: rgba(255, 255, 255, 0.05);
 }
-
 
 /* Estilos para citações */
 .message-content blockquote {

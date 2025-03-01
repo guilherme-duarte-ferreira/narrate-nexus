@@ -1,4 +1,3 @@
-
 import { escapeHTML } from './chatUtils.js';
 import { renderMessage } from '../messageRenderer.js';
 
@@ -27,6 +26,14 @@ export function adicionarMensagem(chatContainer, texto, tipo) {
         // Aplicar formatação Markdown apenas nas mensagens do assistente
         conteudoHtml = renderMessage(texto);
         console.log('[DEBUG] HTML renderizado:', conteudoHtml.substring(0, 150) + '...');
+        
+        // Adiciona a classe .code-block a todos os <pre>
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = conteudoHtml;
+        tempDiv.querySelectorAll('pre').forEach(pre => {
+            pre.classList.add('code-block');
+        });
+        conteudoHtml = tempDiv.innerHTML;
     } else {
         // Para mensagens do usuário, apenas escape HTML e quebras de linha
         conteudoHtml = `<p>${escapeHTML(texto).replace(/\n/g, '<br>')}</p>`;

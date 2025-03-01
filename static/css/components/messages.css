@@ -66,18 +66,43 @@
     font-size: 0.9em;
 }
 
+/* Container para o bloco de código com cabeçalho */
+.code-container {
+    position: relative;
+    margin: 1em 0;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.code-header {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.language-label {
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 1px;
+}
+
 /* Blocos de código estilo terminal */
 .message-content .code-block {
     background-color: #1e1e1e; /* Fundo preto estilo terminal */
     color: #f8f8f2; /* Texto branco */
     padding: 15px;
-    border-radius: 5px;
+    border-radius: 0 0 5px 5px;
     font-family: 'Consolas', 'Courier New', monospace;
     position: relative;
-    margin: 1em 0;
     overflow-x: auto; /* Para códigos longos */
     border: 1px solid #333;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0; /* Remove margem para alinhar com o cabeçalho */
 }
 
 .message-content .code-block code {
@@ -100,10 +125,15 @@
     cursor: pointer;
     border-radius: 3px;
     font-size: 0.8rem;
+    transition: background-color 0.2s;
 }
 
 .code-copy-btn:hover {
     background: #666;
+}
+
+.code-copy-btn.copied {
+    background: #4CAF50;
 }
 
 /* Realce de sintaxe para blocos de código */

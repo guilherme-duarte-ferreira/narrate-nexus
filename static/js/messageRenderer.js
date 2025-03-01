@@ -60,7 +60,7 @@ export function renderMessage(text) {
     formattedText = formattedText.replace(/^\s*(\d+)\. (.*$)/gm, '<li>$2</li>');
     formattedText = formattedText.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
 
-    // Formatação de blocos de código (estilo terminal)
+    // Formatação de blocos de código (estilo terminal com barra de título)
     formattedText = formattedText.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
         const language = lang || 'plaintext';
         const escapedCode = escapeHTML(code.trim());
@@ -95,7 +95,12 @@ export function renderMessage(text) {
         // Comentários multilinhas (para C, Java, etc)
         highlightedCode = highlightedCode.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$&</span>');
         
-        return `<pre class="code-block" data-language="${language}"><code>${highlightedCode}</code><button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button></pre>`;
+        return `<div class="code-container">
+            <div class="code-header">
+                <span class="language-label">${language}</span>
+            </div>
+            <pre class="code-block" data-language="${language}"><code>${highlightedCode}</code><button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button></pre>
+        </div>`;
     });
 
     // Formatação de citações

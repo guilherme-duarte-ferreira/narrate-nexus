@@ -73,6 +73,7 @@
     border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0; /* Remove qualquer padding extra */
 }
 
 .code-header {
@@ -84,6 +85,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 0; /* Remove espaçamento abaixo do cabeçalho */
 }
 
 .language-label {
@@ -115,10 +117,7 @@
 
 /* Botão de copiar código */
 .code-copy-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: #444;
+    background: transparent;
     color: white;
     border: none;
     padding: 5px 8px;
@@ -126,6 +125,7 @@
     border-radius: 3px;
     font-size: 0.8rem;
     transition: background-color 0.2s;
+    margin-left: auto; /* Alinha o botão à direita */
 }
 
 .code-copy-btn:hover {

@@ -1,4 +1,3 @@
-
 /**
  * Renderiza uma mensagem formatada com Markdown
  * @param {string} text - Texto em formato Markdown
@@ -98,8 +97,9 @@ export function renderMessage(text) {
         return `<div class="code-container">
             <div class="code-header">
                 <span class="language-label">${language}</span>
+                <button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button>
             </div>
-            <pre class="code-block" data-language="${language}"><code>${highlightedCode}</code><button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button></pre>
+            <pre class="code-block" data-language="${language}"><code>${highlightedCode}</code></pre>
         </div>`;
     });
 

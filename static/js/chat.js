@@ -22,7 +22,8 @@ import {
 
 // Função para copiar código
 window.copiarCodigo = function(button) {
-    const codeBlock = button.previousElementSibling;
+    const codeContainer = button.closest('.code-container');
+    const codeBlock = codeContainer.querySelector('.code-block code');
     const code = codeBlock.textContent;
     
     navigator.clipboard.writeText(code).then(() => {

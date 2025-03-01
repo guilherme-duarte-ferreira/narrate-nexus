@@ -69,14 +69,15 @@
 /* Blocos de código estilo terminal */
 .message-content .code-block {
     background-color: #1e1e1e; /* Fundo preto estilo terminal */
-    color: #ffffff; /* Texto branco */
+    color: #f8f8f2; /* Texto branco */
     padding: 15px;
     border-radius: 5px;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Consolas', 'Courier New', monospace;
     position: relative;
     margin: 1em 0;
     overflow-x: auto; /* Para códigos longos */
     border: 1px solid #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .message-content .code-block code {
@@ -133,8 +134,6 @@
 .chat-container .message-content td {
   border: 1px solid var(--border-color); /* Mantém as bordas visíveis */
   padding: 0.2rem; /* Espaço interno reduzido */
-
-
   text-align: left; /* Alinhamento à esquerda */
 }
 

@@ -1,3 +1,4 @@
+
 import { 
     iniciarChat,
     mostrarTelaInicial,
@@ -18,6 +19,27 @@ import {
     renomearConversa,
     excluirConversa
 } from './chat/chatStorage.js';
+
+// Função para copiar código
+window.copiarCodigo = function(button) {
+    const codeBlock = button.previousSibling;
+    const code = codeBlock.textContent;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        // Feedback visual
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('copied');
+        
+        // Retornar ao estado original após 2 segundos
+        setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-copy"></i>';
+            button.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Erro ao copiar código:', err);
+        alert('Não foi possível copiar o código. Por favor, tente novamente.');
+    });
+};
 
 export {
     iniciarChat,

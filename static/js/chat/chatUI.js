@@ -1,5 +1,4 @@
 
-
 import { escapeHTML } from './chatUtils.js';
 import { renderMessage } from '../messageRenderer.js';
 
@@ -50,11 +49,6 @@ export function adicionarMensagem(chatContainer, texto, tipo) {
     mensagemDiv.innerHTML = conteudo;
     chatContainer.appendChild(mensagemDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
-    
-    // Aplicar realce de sintaxe nos blocos de código
-    if (tipo === 'assistant') {
-        realcarSintaxeCodigo(mensagemDiv);
-    }
 }
 
 export function mostrarCarregamento(chatContainer) {
@@ -68,55 +62,4 @@ export function mostrarCarregamento(chatContainer) {
     chatContainer.appendChild(loadingDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
     return loadingDiv;
-}
-
-function realcarSintaxeCodigo(container) {
-    // Encontrar todos os blocos de código
-    const codeBlocks = container.querySelectorAll('pre.code-block code');
-    codeBlocks.forEach(block => {
-        const language = block.parentElement.dataset.language || '';
-        
-        // Adicionar formatação básica de sintaxe
-        // Palavras-chave comuns em várias linguagens
-        const keywords = [
-            'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 
-            'export', 'const', 'let', 'var', 'def', 'print', 'from', 'async', 'await',
-            'try', 'catch', 'finally', 'switch', 'case', 'break', 'continue',
-            'public', 'private', 'protected', 'static', 'new', 'this', 'super',
-            'int', 'float', 'double', 'bool', 'string', 'void', 'null', 'True', 'False'
-        ];
-        
-        // Aplicar estilo para keywords
-        keywords.forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-            block.innerHTML = block.innerHTML.replace(
-                regex, 
-                `<span class="keyword">${keyword}</span>`
-            );
-        });
-        
-        // Strings
-        block.innerHTML = block.innerHTML.replace(
-            /(["'])(.*?)\1/g, 
-            '<span class="string">$&</span>'
-        );
-        
-        // Números
-        block.innerHTML = block.innerHTML.replace(
-            /\b(\d+(\.\d+)?)\b/g, 
-            '<span class="number">$&</span>'
-        );
-        
-        // Comentários (simplificado)
-        block.innerHTML = block.innerHTML.replace(
-            /(\/\/.*|#.*)/g, 
-            '<span class="comment">$&</span>'
-        );
-        
-        // Comentários multilinhas (para C, Java, etc)
-        block.innerHTML = block.innerHTML.replace(
-            /(\/\*[\s\S]*?\*\/)/g,
-            '<span class="comment">$&</span>'
-        );
-    });
 }

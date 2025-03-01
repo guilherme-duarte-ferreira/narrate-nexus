@@ -1,3 +1,4 @@
+
 /**
  * Renderiza uma mensagem formatada com Markdown
  * @param {string} text - Texto em formato Markdown
@@ -29,27 +30,28 @@ export function renderMessage(text) {
     // Formatação de links
     formattedText = formattedText.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-    // Formatação de tabelas
+    // Formatação de tabelas - regex melhorada para capturar tabelas corretamente
     formattedText = formattedText.replace(/(\|[^\n]*\|\r?\n)((?:\|:?[-]+:?)+\|)(\n(?:\|[^\n]*\|\r?\n?)*)/g, function (match, header, separator, rows) {
         const headerCells = header.split('|').slice(1, -1).map(cell => cell.trim());
         const rowsArray = rows.trim().split('\n');
         
-        let tableHTML = '<table>\n<thead>\n<tr>\n';
+        let tableHTML = '<table>';
+        tableHTML += '<thead><tr>';
         headerCells.forEach(cell => {
-            tableHTML += `<th>${cell}</th>\n`;
+            tableHTML += `<th>${cell}</th>`;
         });
-        tableHTML += '</tr>\n</thead>\n<tbody>\n';
+        tableHTML += '</tr></thead><tbody>';
         
         rowsArray.forEach(row => {
             const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
-            tableHTML += '<tr>\n';
+            tableHTML += '<tr>';
             cells.forEach(cell => {
-                tableHTML += `<td>${cell}</td>\n`;
+                tableHTML += `<td>${cell}</td>`;
             });
-            tableHTML += '</tr>\n';
+            tableHTML += '</tr>';
         });
         
-        tableHTML += '</tbody>\n</table>';
+        tableHTML += '</tbody></table>';
         return tableHTML;
     });
 
@@ -117,6 +119,12 @@ export function renderMessage(text) {
         .replace(/<\/li><br>/g, '</li>')
         .replace(/<\/blockquote><br>/g, '</blockquote>')
         .replace(/<\/pre><br>/g, '</pre>');
+        
+    // Remove quebras de linha excessivas antes das tabelas
+    formattedText = formattedText.replace(/<br>\s*(<table>)/g, '$1');
+    
+    // Remove quebras de linha entre tabela e conteúdo seguinte
+    formattedText = formattedText.replace(/(<\/table>)<br>/g, '$1');
 
     return formattedText;
 }

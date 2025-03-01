@@ -73,7 +73,7 @@
     border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 0; /* Remove qualquer padding extra */
+    padding: 0; /* Remove padding extra */
 }
 
 .code-header {
@@ -85,13 +85,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0; /* Remove espaçamento abaixo do cabeçalho */
+    margin: 0; /* Remove margens */
+    border-bottom: none; /* Remove borda para colar com o bloco */
 }
 
 .language-label {
     text-transform: uppercase;
     font-size: 0.8em;
     letter-spacing: 1px;
+    flex: 1; /* Expande para empurrar o botão */
 }
 
 /* Blocos de código estilo terminal */
@@ -99,12 +101,13 @@
     background-color: #1e1e1e; /* Fundo preto estilo terminal */
     color: #f8f8f2; /* Texto branco */
     padding: 15px;
-    border-radius: 0 0 5px 5px;
+    border-radius: 0; /* Remove bordas arredondadas para colar com o header */
     font-family: 'Consolas', 'Courier New', monospace;
     position: relative;
     overflow-x: auto; /* Para códigos longos */
     border: 1px solid #333;
     margin: 0; /* Remove margem para alinhar com o cabeçalho */
+    border-top: none; /* Remove borda superior para colar com o header */
 }
 
 .message-content .code-block code {
@@ -153,36 +156,41 @@
     color: #6a9955; /* Verde escuro para comentários */
 }
 
-/* Estilos para tabelas Markdown */
+/* Estilos para tabelas Markdown - corrigido */
 .chat-container .message-content table {
-  width: 100%; /* Ocupa toda a largura disponível */
-  border-collapse: collapse; /* Une as bordas das células */
-  margin: 0.25rem 0; /* Espaço ainda mais reduzido acima e abaixo */
+    width: 100%; /* Ocupa toda a largura disponível */
+    border-collapse: collapse; /* Une as bordas das células */
+    margin: 0.5rem 0; /* Espaço reduzido acima e abaixo */
+    padding: 0;
+    table-layout: fixed; /* Evita células desproporcionais */
 }
 
 .chat-container .message-content th,
 .chat-container .message-content td {
-  border: 1px solid var(--border-color); /* Mantém as bordas visíveis */
-  padding: 0.2rem; /* Espaço interno reduzido */
-  text-align: left; /* Alinhamento à esquerda */
+    border: 1px solid var(--border-color); /* Bordas visíveis */
+    padding: 0.5rem; /* Espaço interno reduzido */
+    text-align: left; /* Alinhamento à esquerda */
+    vertical-align: top; /* Evita alinhamentos estranhos */
+    word-wrap: break-word; /* Quebra palavras longas */
+    overflow-wrap: break-word;
 }
 
 .chat-container .message-content th {
-  background-color: var(--action-hover); /* Fundo leve para cabeçalhos */
-  font-weight: bold; /* Cabeçalhos em negrito */
+    background-color: var(--action-hover); /* Fundo leve para cabeçalhos */
+    font-weight: bold; /* Cabeçalhos em negrito */
 }
 
 .chat-container .message-content tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.05); /* Efeito zebrado nas linhas pares */
+    background-color: rgba(0, 0, 0, 0.05); /* Efeito zebrado nas linhas pares */
 }
 
 /* Ajuste para tema escuro, se necessário */
 [data-theme="dark"] .chat-container .message-content th {
-  background-color: var(--action-hover);
+    background-color: var(--action-hover);
 }
 
 [data-theme="dark"] .chat-container .message-content tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Estilos para citações */

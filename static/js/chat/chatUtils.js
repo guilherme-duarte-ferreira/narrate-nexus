@@ -48,9 +48,10 @@ export function copiarCodigo(button) {
     console.log('[DEBUG] Copiando código...');
     const codeContainer = button.closest('.code-container');
     // Usando textContent para obter apenas o texto puro, sem formatação HTML
-    const codigo = codeContainer.querySelector('.code-block code').textContent
+    const codigo = codeContainer.querySelector('.code-block code').innerText
         .replace(/\n\s+/g, '\n')  // Remove indentação excessiva
-        .trim();  // Remove espaços em branco extras
+        .replace(/\s+$/gm, '')    // Remove espaços em branco extras
+        .trim();                  // Remove espaços em branco extras
     
     navigator.clipboard.writeText(codigo)
         .then(() => {

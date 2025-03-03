@@ -5,7 +5,13 @@
  * @returns {string} HTML formatado
  */
 export function renderMessage(text) {
-    // Configurar marked.js com opções profissionais
+    // Passo 1: Configurar highlight.js
+    hljs.configure({
+        cssSelector: 'pre code',
+        ignoreUnescapedHTML: true
+    });
+
+    // Passo 2: Configurar marked
     marked.setOptions({
         gfm: true,               // Suporte a GitHub Flavored Markdown
         breaks: false,           // Não converter \n em <br>
@@ -14,12 +20,10 @@ export function renderMessage(text) {
         smartLists: true,        // Listas inteligentes
         smartypants: false,      // Não usar tipografia avançada
         highlight: function(code, lang) {
-            // Definir linguagem padrão se não for especificada
-            const language = lang || 'plaintext';
-            
             try {
-                // Usar highlight.js para destacar sintaxe
-                const highlightedCode = hljs.highlightAuto(code, lang ? [lang] : undefined).value;
+                // Usar linguagem específica ou detectar automaticamente
+                const language = lang || 'plaintext';
+                const highlightedCode = hljs.highlight(code, { language }).value;
                 
                 // Retornar o HTML com o container personalizado
                 return `<div class="code-container">
@@ -27,17 +31,17 @@ export function renderMessage(text) {
                         <span class="language-label">${language}</span>
                         <button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button>
                     </div>
-                    <pre class="code-block" data-language="${language}"><code class="hljs language-${language}">${highlightedCode}</code></pre>
+                    <pre class="code-block"><code class="hljs language-${language}">${highlightedCode}</code></pre>
                 </div>`;
             } catch (error) {
                 console.error(`Erro ao destacar código: ${error.message}`);
                 // Fallback seguro em caso de erro
                 return `<div class="code-container">
                     <div class="code-header">
-                        <span class="language-label">${language}</span>
+                        <span class="language-label">texto</span>
                         <button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button>
                     </div>
-                    <pre class="code-block" data-language="${language}"><code>${code}</code></pre>
+                    <pre class="code-block"><code>${code}</code></pre>
                 </div>`;
             }
         }
@@ -45,12 +49,44 @@ export function renderMessage(text) {
     
     try {
         // Primeiro, sanitizar o texto para evitar XSS
-        const sanitizedText = DOMPurify.sanitize(text);
+        const allowedTags = ['pre', 'code', 'span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                            'ul', 'ol', 'li', 'blockquote', 'a', 'strong', 'em', 'del', 'table', 
+                            'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img'];
+        
+        const allowedAttributes = {
+            'code': ['class'],
+            'span': ['class'],
+            'div': ['class'],
+            'a': ['href', 'target', 'rel'],
+            'img': ['src', 'alt']
+        };
+        
+        // Sanitização inteligente para preservar classes de highlight.js
+        const sanitizedText = DOMPurify.sanitize(text, {
+            ALLOWED_TAGS: [],
+            ALLOWED_ATTR: []
+        });
         
         // Usar o marked para converter o Markdown em HTML
         const htmlContent = marked.parse(sanitizedText);
         
-        return htmlContent;
+        // Sanitizar o HTML final preservando formatação necessária
+        const finalHtml = DOMPurify.sanitize(htmlContent, {
+            ALLOWED_TAGS: allowedTags,
+            ALLOWED_ATTR: allowedAttributes,
+            ADD_ATTR: ['target'],
+            FORBID_TAGS: ['style', 'script'],
+            FORBID_ATTR: ['style', 'onerror', 'onclick'],
+        });
+        
+        // Ativar highlight.js após inserção no DOM
+        setTimeout(() => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }, 50);
+        
+        return finalHtml;
     } catch (error) {
         console.error(`Erro ao renderizar markdown: ${error.message}`);
         // Fallback seguro em caso de erro

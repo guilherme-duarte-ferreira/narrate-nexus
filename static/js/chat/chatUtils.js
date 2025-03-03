@@ -47,26 +47,37 @@ export function regenerarResposta(button) {
 export function copiarCodigo(button) {
     console.log('[DEBUG] Copiando código...');
     const codeContainer = button.closest('.code-container');
-    // Usando textContent para obter apenas o texto puro, sem formatação HTML
-    const codigo = codeContainer.querySelector('.code-block code').innerText
+    
+    // Criar um textarea temporário para decodificar corretamente o HTML
+    const tempTextarea = document.createElement('textarea');
+    
+    // Extrair texto usando innerText para preservar formatação
+    tempTextarea.value = codeContainer.querySelector('.code-block code').innerText
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
         .replace(/\n\s+/g, '\n')  // Remove indentação excessiva
         .replace(/\s+$/gm, '')    // Remove espaços em branco extras
         .trim();                  // Remove espaços em branco extras
     
-    navigator.clipboard.writeText(codigo)
-        .then(() => {
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            button.classList.add('copied');
-            
-            setTimeout(() => {
-                button.innerHTML = '<i class="fas fa-copy"></i>';
-                button.classList.remove('copied');
-            }, 2000);
-        })
-        .catch(err => {
-            console.error('[ERRO] Falha ao copiar código:', err);
-            alert('Não foi possível copiar o código. Por favor, tente novamente.');
-        });
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+    
+    try {
+        document.execCommand('copy');
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('copied');
+        
+        setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-copy"></i>';
+            button.classList.remove('copied');
+        }, 2000);
+    } catch (err) {
+        console.error('[ERRO] Falha ao copiar código:', err);
+        alert('Não foi possível copiar o código. Por favor, tente novamente.');
+    } finally {
+        document.body.removeChild(tempTextarea);
+    }
 }
 
 // Expor função globalmente para o onclick

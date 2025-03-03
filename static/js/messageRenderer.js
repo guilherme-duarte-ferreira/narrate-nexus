@@ -5,6 +5,13 @@
  * @returns {string} HTML formatado
  */
 export function renderMessage(text) {
+    // Passo 1: Verificar se hljs está disponível globalmente
+    if (typeof hljs === 'undefined') {
+        console.error('[ERRO] highlight.js não está definido. Verifique se o script foi carregado corretamente.');
+        // Fallback simples se hljs não estiver disponível
+        return `<pre>${text}</pre>`;
+    }
+
     // Passo 1: Configurar highlight.js
     hljs.configure({
         cssSelector: 'pre code',
@@ -48,7 +55,13 @@ export function renderMessage(text) {
     });
     
     try {
-        // Primeiro, sanitizar o texto para evitar XSS
+        // Primeiro, verificar se DOMPurify está disponível
+        if (typeof DOMPurify === 'undefined') {
+            console.error('[ERRO] DOMPurify não está definido. Verifique se o script foi carregado corretamente.');
+            return marked.parse(text); // Fallback sem sanitização (não recomendado em produção)
+        }
+        
+        // Sanitização inteligente para preservar classes de highlight.js
         const allowedTags = ['pre', 'code', 'span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
                             'ul', 'ol', 'li', 'blockquote', 'a', 'strong', 'em', 'del', 'table', 
                             'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img'];
@@ -61,7 +74,7 @@ export function renderMessage(text) {
             'img': ['src', 'alt']
         };
         
-        // Sanitização inteligente para preservar classes de highlight.js
+        // Primeiro sanitizar o texto cru
         const sanitizedText = DOMPurify.sanitize(text, {
             ALLOWED_TAGS: [],
             ALLOWED_ATTR: []
@@ -81,9 +94,11 @@ export function renderMessage(text) {
         
         // Ativar highlight.js após inserção no DOM
         setTimeout(() => {
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
+            if (typeof hljs !== 'undefined') {
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            }
         }, 50);
         
         return finalHtml;

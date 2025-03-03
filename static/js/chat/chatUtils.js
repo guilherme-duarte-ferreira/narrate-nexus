@@ -47,12 +47,22 @@ export function regenerarResposta(button) {
 export function copiarCodigo(button) {
     console.log('[DEBUG] Copiando código...');
     const codeContainer = button.closest('.code-container');
+    if (!codeContainer) {
+        console.error('[ERRO] Container de código não encontrado');
+        return;
+    }
     
     // Criar um textarea temporário para decodificar corretamente o HTML
     const tempTextarea = document.createElement('textarea');
     
     // Extrair texto usando innerText para preservar formatação
-    tempTextarea.value = codeContainer.querySelector('.code-block code').innerText
+    const codeBlock = codeContainer.querySelector('.code-block code');
+    if (!codeBlock) {
+        console.error('[ERRO] Bloco de código não encontrado');
+        return;
+    }
+    
+    tempTextarea.value = codeBlock.innerText
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&amp;/g, '&')

@@ -74,7 +74,29 @@ export function copiarCodigo(button) {
     tempTextarea.select();
     
     try {
-        document.execCommand('copy');
+        // Tenta usar a API Clipboard moderna primeiro
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(tempTextarea.value)
+                .then(() => {
+                    // Feedback visual
+                    button.innerHTML = '<i class="fas fa-check"></i>';
+                    button.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = '<i class="fas fa-copy"></i>';
+                        button.classList.remove('copied');
+                    }, 2000);
+                })
+                .catch(err => {
+                    // Se falhar, tenta o método alternativo
+                    document.execCommand('copy');
+                    console.warn('[AVISO] Fallback para execCommand após erro:', err);
+                });
+        } else {
+            // Fallback para método mais antigo
+            document.execCommand('copy');
+        }
+        
         button.innerHTML = '<i class="fas fa-check"></i>';
         button.classList.add('copied');
         

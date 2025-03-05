@@ -9,7 +9,6 @@
     overflow: hidden;
     background-color: var(--code-bg);
     border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Cabeçalho do bloco de código */
@@ -22,7 +21,6 @@
     color: var(--text-secondary);
     font-family: monospace;
     font-size: 0.875rem;
-    border-bottom: 1px solid var(--border-color);
 }
 
 /* Rótulo de linguagem */
@@ -42,17 +40,14 @@
     padding: 0.25rem 0.5rem;
     transition: color 0.2s;
     font-size: 0.875rem;
-    border-radius: 4px;
 }
 
 .code-copy-btn:hover {
     color: var(--text-primary);
-    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .code-copy-btn.copied {
     color: var(--color-success);
-    background-color: rgba(76, 175, 80, 0.1);
 }
 
 /* Bloco de código */
@@ -69,7 +64,6 @@
     font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
     font-size: 0.875rem;
     line-height: 1.5;
-    tab-size: 4;
 }
 
 /* Ajustes para temas claro e escuro */
@@ -91,7 +85,6 @@
     --code-text-dark: #d4d4d4;
     --code-header-bg: #f1f1f1;
     --code-header-bg-dark: #2d2d2d;
-    --color-success: #4CAF50;
 }
 
 [data-theme="dark"] {
@@ -134,32 +127,4 @@
     --hljs-comment: #6a9955;
     --hljs-function: #dcdcaa;
     --hljs-number: #b5cea8;
-}
-
-/* Estilos para a versão manual do parser de código */
-.console-output {
-    margin: 1rem 0;
-    border-radius: 6px;
-    overflow: hidden;
-    background-color: var(--code-bg);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.console-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background-color: var(--code-header-bg);
-    color: var(--text-secondary);
-    font-family: monospace;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.console-title {
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
 }

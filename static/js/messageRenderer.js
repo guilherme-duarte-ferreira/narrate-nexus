@@ -12,13 +12,13 @@ export function renderMessage(text) {
         return `<pre>${text}</pre>`;
     }
 
-    // Passo 2: Configurar highlight.js
+    // Passo 1: Configurar highlight.js
     hljs.configure({
         cssSelector: 'pre code',
         ignoreUnescapedHTML: true
     });
 
-    // Passo 3: Configurar marked
+    // Passo 2: Configurar marked
     marked.setOptions({
         gfm: true,               // Suporte a GitHub Flavored Markdown
         breaks: false,           // Não converter \n em <br>
@@ -28,11 +28,11 @@ export function renderMessage(text) {
         smartypants: false,      // Não usar tipografia avançada
         highlight: function(code, lang) {
             try {
-                // Detectar linguagem ou usar plaintext como fallback
-                const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+                // Usar linguagem específica ou detectar automaticamente
+                const language = lang || 'plaintext';
                 const highlightedCode = hljs.highlight(code, { language }).value;
                 
-                // Retornar o HTML com o container personalizado aprimorado
+                // Retornar o HTML com o container personalizado
                 return `<div class="code-container">
                     <div class="code-header">
                         <span class="language-label">${language}</span>

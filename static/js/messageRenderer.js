@@ -64,14 +64,15 @@ export function renderMessage(text) {
         // Sanitização inteligente para preservar classes de highlight.js
         const allowedTags = ['pre', 'code', 'span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
                             'ul', 'ol', 'li', 'blockquote', 'a', 'strong', 'em', 'del', 'table', 
-                            'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img'];
+                            'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img', 'button'];
         
         const allowedAttributes = {
             'code': ['class'],
             'span': ['class'],
             'div': ['class'],
             'a': ['href', 'target', 'rel'],
-            'img': ['src', 'alt']
+            'img': ['src', 'alt'],
+            'button': ['class', 'onclick', 'title']
         };
         
         // Primeiro sanitizar o texto cru
@@ -90,6 +91,8 @@ export function renderMessage(text) {
             ADD_ATTR: ['target'],
             FORBID_TAGS: ['style', 'script'],
             FORBID_ATTR: ['style', 'onerror', 'onclick'],
+            ADD_TAGS: ['button'],
+            ADD_ATTR: ['onclick', 'title'],
         });
         
         // Ativar highlight.js após inserção no DOM

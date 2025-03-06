@@ -64,14 +64,16 @@ export function renderMessage(text) {
         // Sanitização inteligente para preservar classes de highlight.js
         const allowedTags = ['pre', 'code', 'span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
                             'ul', 'ol', 'li', 'blockquote', 'a', 'strong', 'em', 'del', 'table', 
-                            'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img'];
+                            'thead', 'tbody', 'tr', 'th', 'td', 'hr', 'br', 'img', 'button', 'i'];
         
         const allowedAttributes = {
             'code': ['class'],
             'span': ['class'],
             'div': ['class'],
+            'button': ['class', 'onclick', 'title'],
             'a': ['href', 'target', 'rel'],
-            'img': ['src', 'alt']
+            'img': ['src', 'alt'],
+            'i': ['class']
         };
         
         // Primeiro sanitizar o texto cru

@@ -76,14 +76,8 @@ export function renderMessage(text) {
             'i': ['class']
         };
         
-        // Primeiro sanitizar o texto cru
-        const sanitizedText = DOMPurify.sanitize(text, {
-            ALLOWED_TAGS: [],
-            ALLOWED_ATTR: []
-        });
-        
-        // Usar o marked para converter o Markdown em HTML
-        const htmlContent = marked.parse(sanitizedText);
+        // Converter o Markdown em HTML com marked
+        const htmlContent = marked.parse(text);
         
         // Sanitizar o HTML final preservando formatação necessária
         const finalHtml = DOMPurify.sanitize(htmlContent, {
@@ -91,7 +85,7 @@ export function renderMessage(text) {
             ALLOWED_ATTR: allowedAttributes,
             ADD_ATTR: ['target'],
             FORBID_TAGS: ['style', 'script'],
-            FORBID_ATTR: ['style', 'onerror', 'onclick'],
+            FORBID_ATTR: ['style', 'onerror']  // Removemos 'onclick' para permitir o botão de copiar
         });
         
         // Ativar highlight.js após inserção no DOM

@@ -27,29 +27,34 @@ export function renderMessage(text) {
         smartLists: true,        // Listas inteligentes
         smartypants: false,      // Não usar tipografia avançada
         highlight: function(code, lang) {
+            console.log('[DEBUG] Função highlight chamada com:', { code: code.substring(0, 50) + '...', lang });
             try {
                 // Usar linguagem específica ou detectar automaticamente
                 const language = lang || 'plaintext';
                 const highlightedCode = hljs.highlight(code, { language }).value;
                 
                 // Retornar o HTML com o container personalizado
-                return `<div class="code-container">
+                const html = `<div class="code-container">
                     <div class="code-header">
-                        <span class="language-label">${language}</span>
+                        <span class="language-label">${language.toUpperCase()}</span>
                         <button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button>
                     </div>
                     <pre class="code-block"><code class="hljs language-${language}">${highlightedCode}</code></pre>
                 </div>`;
+                console.log('[DEBUG] HTML gerado:', html.substring(0, 150) + '...');
+                return html;
             } catch (error) {
                 console.error(`Erro ao destacar código: ${error.message}`);
                 // Fallback seguro em caso de erro
-                return `<div class="code-container">
+                const html = `<div class="code-container">
                     <div class="code-header">
-                        <span class="language-label">texto</span>
+                        <span class="language-label">TEXTO</span>
                         <button class="code-copy-btn" onclick="window.copiarCodigo(this)" title="Copiar código"><i class="fas fa-copy"></i></button>
                     </div>
                     <pre class="code-block"><code>${code}</code></pre>
                 </div>`;
+                console.log('[DEBUG] HTML de fallback:', html.substring(0, 150) + '...');
+                return html;
             }
         }
     });
@@ -60,6 +65,10 @@ export function renderMessage(text) {
             console.error('[ERRO] DOMPurify não está definido. Verifique se o script foi carregado corretamente.');
             return marked.parse(text); // Fallback sem sanitização (não recomendado em produção)
         }
+        
+        // Converter o Markdown em HTML com marked
+        const htmlContent = marked.parse(text);
+        console.log('[DEBUG] HTML antes da sanitização:', htmlContent.substring(0, 150) + '...');
         
         // Sanitização inteligente para preservar classes de highlight.js
         const allowedTags = ['pre', 'code', 'span', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
@@ -76,9 +85,6 @@ export function renderMessage(text) {
             'i': ['class']
         };
         
-        // Converter o Markdown em HTML com marked
-        const htmlContent = marked.parse(text);
-        
         // Sanitizar o HTML final preservando formatação necessária
         const finalHtml = DOMPurify.sanitize(htmlContent, {
             ALLOWED_TAGS: allowedTags,
@@ -87,6 +93,7 @@ export function renderMessage(text) {
             FORBID_TAGS: ['style', 'script'],
             FORBID_ATTR: ['style', 'onerror']  // Removemos 'onclick' para permitir o botão de copiar
         });
+        console.log('[DEBUG] HTML após sanitização:', finalHtml.substring(0, 150) + '...');
         
         // Ativar highlight.js após inserção no DOM
         setTimeout(() => {

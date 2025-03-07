@@ -91,8 +91,10 @@ export function melhorarBlocosCodigo() {
         }
 
         // Determinar a linguagem do bloco de código
+        console.log('[DEBUG] Classes do bloco:', block.className);
         const langClass = block.className.match(/language-(\w+)/);
         const language = langClass ? langClass[1].toUpperCase() : 'CÓDIGO';
+        console.log('[DEBUG] Linguagem detectada:', language);
 
         // Criar container principal
         const container = document.createElement('div');
@@ -123,6 +125,9 @@ export function melhorarBlocosCodigo() {
         parent.insertBefore(container, pre);
         container.appendChild(header);
         container.appendChild(pre);
+        
+        // Reaplicar o highlight para garantir que o destaque de sintaxe seja mantido
+        hljs.highlightElement(block);
     });
 }
 

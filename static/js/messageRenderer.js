@@ -31,8 +31,10 @@ export function renderMessage(text) {
         smartypants: false,      // Não usar tipografia avançada
         highlight: function(code, lang) {
             try {
-                const language = lang || 'plaintext';
-                return hljs.highlight(code, { language }).value;
+                const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+                const highlighted = hljs.highlight(code, { language }).value;
+                // Preserva a classe da linguagem para uso posterior
+                return `<code class="language-${language} hljs">${highlighted}</code>`;
             } catch (error) {
                 console.error(`Erro ao destacar código: ${error.message}`);
                 return code;

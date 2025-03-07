@@ -7,7 +7,7 @@
     margin: 1rem 0;
     border-radius: 6px;
     overflow: hidden;
-    background-color: var(--code-bg); /* Fundo do container */
+    background-color: #1e1e1e; /* Fundo fixo escuro */
     border: 1px solid var(--border-color);
 }
 
@@ -17,8 +17,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    background-color: var(--code-header-bg);
-    color: var(--text-secondary);
+    background-color: #2d2d2d; /* Cabeçalho um pouco mais claro que o fundo */
+    color: #d4d4d4;
     font-family: monospace;
     font-size: 0.875rem;
 }
@@ -35,7 +35,7 @@
 .code-copy-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
     padding: 0.25rem 0.5rem;
     transition: color 0.2s;
@@ -43,7 +43,7 @@
 }
 
 .code-copy-btn:hover {
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .code-copy-btn.copied {
@@ -54,7 +54,7 @@
 .code-block {
     margin: 0;
     padding: 1rem;
-    background-color: var(--code-bg); /* Garantir que o <pre> tenha o fundo correto */
+    background-color: #1e1e1e; /* Fundo fixo escuro */
     overflow-x: auto;
 }
 
@@ -64,59 +64,26 @@
     font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
     font-size: 0.875rem;
     line-height: 1.5;
+    color: #d4d4d4;
 }
 
 /* Forçar o tema de cores highlight.js para os blocos de código */
 .hljs {
     background: transparent !important; /* O fundo vem do .code-block */
-    color: var(--text-primary);
+    color: #d4d4d4; /* Cor base do texto para fundo escuro */
 }
 
-/* Ajustes para temas claro e escuro */
+/* Forçar fundo escuro em ambos os temas */
 [data-theme="light"] .code-container,
-[data-theme="light"] .code-block {
-    background-color: var(--code-bg, #f8f8f8) !important;
-}
-
+[data-theme="light"] .code-block,
 [data-theme="dark"] .code-container,
 [data-theme="dark"] .code-block {
-    background-color: var(--code-bg, #1e1e1e) !important;
+    background-color: #1e1e1e !important;
 }
 
-/* Cores de sintaxe para highlight.js - Variáveis para temas */
-:root {
-    --hljs-keyword: #0000ff;
-    --hljs-string: #a31515;
-    --hljs-comment: #008000;
-    --hljs-function: #795e26;
-    --hljs-number: #098658;
-}
-
-[data-theme="dark"] {
-    --hljs-keyword: #569cd6;
-    --hljs-string: #ce9178;
-    --hljs-comment: #6a9955;
-    --hljs-function: #dcdcaa;
-    --hljs-number: #b5cea8;
-}
-
-/* Integração com a folha de estilo do highlight.js */
-.hljs-keyword {
-    color: var(--hljs-keyword) !important;
-}
-
-.hljs-string {
-    color: var(--hljs-string) !important;
-}
-
-.hljs-comment {
-    color: var(--hljs-comment) !important;
-}
-
-.hljs-function {
-    color: var(--hljs-function) !important;
-}
-
-.hljs-number {
-    color: var(--hljs-number) !important;
-}
+/* Cores de sintaxe para highlight.js - sempre usar cores para tema escuro */
+.hljs-keyword { color: #569cd6 !important; }
+.hljs-string { color: #ce9178 !important; }
+.hljs-comment { color: #6a9955 !important; }
+.hljs-function { color: #dcdcaa !important; }
+.hljs-number { color: #b5cea8 !important; }

@@ -90,5 +90,53 @@ export function copiarCodigo(button) {
     }
 }
 
+/**
+ * Adiciona barras de títulos e botões de copiar aos blocos de código
+ */
+export function melhorarBlocosCodigo() {
+    console.log('[DEBUG] Melhorando blocos de código...');
+    document.querySelectorAll('pre code').forEach((block) => {
+        // Evitar duplicação se já tiver sido processado
+        if (block.parentElement.parentElement.classList.contains('code-container')) {
+            return;
+        }
+
+        // Determinar a linguagem do bloco de código
+        const langClass = block.className.match(/language-(\w+)/);
+        const language = langClass ? langClass[1].toUpperCase() : 'CÓDIGO';
+
+        // Criar container principal
+        const container = document.createElement('div');
+        container.className = 'code-container';
+
+        // Criar barra de título com botão de copiar
+        const header = document.createElement('div');
+        header.className = 'code-header';
+        header.innerHTML = `
+            <span class="language-label">${language}</span>
+            <button class="code-copy-btn" title="Copiar código">
+                <i class="fas fa-copy"></i>
+            </button>
+        `;
+
+        // Adicionar manipulador de eventos para o botão de copiar
+        const copyBtn = header.querySelector('.code-copy-btn');
+        copyBtn.addEventListener('click', function() {
+            copiarCodigo(this);
+        });
+
+        // Reorganizar a estrutura do DOM
+        const pre = block.parentElement;
+        pre.classList.add('code-block');
+        
+        // Inserir elementos na DOM
+        const parent = pre.parentElement;
+        parent.insertBefore(container, pre);
+        container.appendChild(header);
+        container.appendChild(pre);
+    });
+}
+
 // Expor função globalmente para o onclick
 window.copiarCodigo = copiarCodigo;
+window.melhorarBlocosCodigo = melhorarBlocosCodigo;

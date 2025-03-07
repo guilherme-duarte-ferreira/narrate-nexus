@@ -84,16 +84,22 @@ export function copiarCodigo(button) {
  */
 export function melhorarBlocosCodigo() {
     console.log('[DEBUG] Melhorando blocos de código...');
+    const temaAtual = document.documentElement.getAttribute('data-theme');
+    console.log('[DEBUG] Tema atual:', temaAtual);
+    
     document.querySelectorAll('pre code').forEach((block) => {
         // Evitar duplicação se já tiver sido processado
         if (block.parentElement.parentElement.classList.contains('code-container')) {
             return;
         }
 
-        // Determinar a linguagem do bloco de código
+        // Extrair a linguagem da classe com case-insensitive
         console.log('[DEBUG] Classes do bloco:', block.className);
-        const langClass = block.className.match(/language-(\w+)/);
-        const language = langClass ? langClass[1].toUpperCase() : 'CÓDIGO';
+        const langMatch = block.className.match(/language-(\w+)/i);
+        let language = langMatch ? langMatch[1] : 'código';
+        
+        // Capitalizar apenas a primeira letra para exibição mais elegante
+        language = language.charAt(0).toUpperCase() + language.slice(1).toLowerCase();
         console.log('[DEBUG] Linguagem detectada:', language);
 
         // Criar container principal

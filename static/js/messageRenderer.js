@@ -33,7 +33,7 @@ export function renderMessage(text) {
             try {
                 const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
                 const highlighted = hljs.highlight(code, { language }).value;
-                // Preserva a classe da linguagem para uso posterior
+                console.log('[DEBUG] Gerando código com linguagem:', language);
                 return `<code class="language-${language} hljs">${highlighted}</code>`;
             } catch (error) {
                 console.error(`Erro ao destacar código: ${error.message}`);

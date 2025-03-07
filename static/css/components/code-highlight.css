@@ -7,7 +7,7 @@
     margin: 1rem 0;
     border-radius: 6px;
     overflow: hidden;
-    background-color: var(--code-bg);
+    background-color: var(--code-bg); /* Fundo do container */
     border: 1px solid var(--border-color);
 }
 
@@ -53,17 +53,34 @@
 /* Bloco de código */
 .code-block {
     margin: 0;
-    padding: 0;
-    background-color: transparent;
+    padding: 1rem;
+    background-color: var(--code-bg); /* Garantir que o <pre> tenha o fundo correto */
+    overflow-x: auto;
 }
 
 .code-block code {
     display: block;
-    padding: 1rem;
-    overflow-x: auto;
+    background-color: transparent; /* Remover fundo do <code> para usar o do .code-block */
     font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
     font-size: 0.875rem;
     line-height: 1.5;
+}
+
+/* Forçar o tema de cores highlight.js para os blocos de código */
+.hljs {
+    background: transparent !important; /* O fundo vem do .code-block */
+    color: var(--text-primary);
+}
+
+/* Ajustes para temas claro e escuro */
+[data-theme="light"] .code-container,
+[data-theme="light"] .code-block {
+    background-color: var(--code-bg, #f8f8f8) !important;
+}
+
+[data-theme="dark"] .code-container,
+[data-theme="dark"] .code-block {
+    background-color: var(--code-bg, #1e1e1e) !important;
 }
 
 /* Cores de sintaxe para highlight.js - Variáveis para temas */
@@ -81,22 +98,6 @@
     --hljs-comment: #6a9955;
     --hljs-function: #dcdcaa;
     --hljs-number: #b5cea8;
-}
-
-/* Forçar o tema de cores highlight.js para os blocos de código */
-.hljs {
-    background: transparent !important;
-}
-
-/* Ajustes para temas claro e escuro */
-[data-theme="light"] .hljs {
-    background-color: var(--code-bg) !important;
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .hljs {
-    background-color: var(--code-bg) !important;
-    color: var(--text-primary);
 }
 
 /* Integração com a folha de estilo do highlight.js */

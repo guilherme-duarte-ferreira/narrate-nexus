@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, jsonify, Response
 import json
 import os
@@ -48,6 +47,27 @@ def get_conversation(conversation_id):
         print(f"[ERRO] Falha ao obter conversa: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/stream')
+def stream():
+    """Endpoint para streaming de respostas usando Server-Sent Events (SSE)"""
+    conversation_id = request.args.get('conversation_id')
+    message = request.args.get('message', '')
+    
+    if not conversation_id:
+        return jsonify({'error': 'ID de conversa não fornecido'}), 400
+        
+    print(f"[DEBUG] Iniciando streaming para conversa: {conversation_id}")
+    
+    def event_stream():
+        for part in process_with_ai_stream(message, conversation_id):
+            if part:
+                yield f"data: {part}\n\n"
+                
+    response = Response(event_stream(), content_type="text/event-stream")
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['X-Accel-Buffering'] = 'no'  # Para Nginx
+    return response
+
 @app.route('/send_message', methods=['POST'])
 def send_message():
     data = request.json
@@ -73,9 +93,10 @@ def send_message():
                 accumulated_response.append(part)
                 yield f"data: {json.dumps({'content': part, 'conversation_id': conversation_id})}\n\n"
         
-        # Salvar a resposta completa da IA
+        # Salvar a resposta completa da IA - APENAS UMA VEZ
         if accumulated_response:
             complete_response = ''.join(accumulated_response)
+            print(f"[DEBUG] Salvando resposta única para {conversation_id}")
             add_message_to_conversation(conversation_id, complete_response, "assistant")
             print(f"[DEBUG] Resposta completa da IA salva na conversa: {conversation_id}")
 
@@ -230,12 +251,20 @@ def process_with_ai_stream(text, conversation_id=None):
         context_header = f"[Conversa: {conversation_id}] " if conversation_id else ""
         print(f"{context_header}Iniciando streaming para: {text[:50]}...")
         
+        # Opção para incluir histórico de mensagens da conversa específica
+        conversation = None
+        if conversation_id:
+            conversation = get_conversation_by_id(conversation_id)
+        
+        # Mensagem do sistema é sempre necessária
+        messages = [{"role": "system", "content": "Você é um assistente útil. Formate suas respostas em Markdown. Use acentos graves triplos (```) APENAS para blocos de código, especificando a linguagem (ex.: ```python). NUNCA coloque texto explicativo dentro de blocos de código. Exemplo:\nTexto normal aqui.\n```python\nprint('Código aqui')\n```\nMais texto normal aqui."}]
+        
+        # Adicionar mensagem do usuário
+        messages.append({"role": "user", "content": text})
+        
         payload = {
             "model": MODEL_NAME,
-            "messages": [
-                {"role": "system", "content": "Você é um assistente útil. Formate suas respostas em Markdown. Use acentos graves triplos (```) APENAS para blocos de código, especificando a linguagem (ex.: ```python). NUNCA coloque texto explicativo dentro de blocos de código. Exemplo:\nTexto normal aqui.\n```python\nprint('Código aqui')\n```\nMais texto normal aqui."},
-                {"role": "user", "content": text}
-            ],
+            "messages": messages,
             "stream": True
         }
         headers = {"Content-Type": "application/json"}

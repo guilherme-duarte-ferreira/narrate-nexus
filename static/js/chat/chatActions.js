@@ -1,14 +1,29 @@
-
 import { mostrarCarregamento } from './chatUI.js';
 import { adicionarMensagem } from './chatUI.js';
 import { adicionarMensagemAoHistorico, criarNovaConversa } from './chatStorage.js';
 
-let abortController = null;
+let abortControllers = {};
+
+function inicializarConversa(conversationId) {
+    if (!window.conversations[conversationId]) {
+        window.conversations[conversationId] = {
+            data: { 
+                id: conversationId,
+                title: "Nova Conversa",
+                messages: []
+            },
+            streaming: false,
+            currentResponse: '',
+            eventSource: null,
+            abortController: null
+        };
+    }
+    return window.conversations[conversationId];
+}
 
 export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, stopBtn) {
     if (!mensagem.trim()) return;
 
-    // Verificar se é comando do YouTube
     if (mensagem.startsWith('/youtube ')) {
         const videoUrl = mensagem.split(' ')[1];
         if (!videoUrl) {
@@ -20,7 +35,6 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             criarNovaConversa();
         }
 
-        // Adicionar comando do usuário no chat
         adicionarMensagem(chatContainer, mensagem, 'user');
         adicionarMensagemAoHistorico(mensagem, 'user');
 
@@ -49,9 +63,7 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
                 adicionarMensagemAoHistorico(data.text, 'assistant');
             }
             
-            // Forçar atualização da UI
             window.dispatchEvent(new CustomEvent('historicoAtualizado'));
-            
         } catch (error) {
             loadingDiv.remove();
             const errorMsg = "Erro ao processar o vídeo";
@@ -61,19 +73,18 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
         return;
     }
 
-    // Para mensagens normais
     if (!window.conversaAtual) {
-        console.log("Criando nova conversa...");
+        console.log("[DEBUG] Criando nova conversa...");
         criarNovaConversa();
     }
 
-    // Associar mensagem à conversa atual pelo ID
     const conversationId = window.conversaAtual.id;
     console.log(`[DEBUG] Enviando mensagem para conversa: ${conversationId}`);
 
-    // Adicionar mensagem do usuário imediatamente
+    const conversation = inicializarConversa(conversationId);
+    
     adicionarMensagem(chatContainer, mensagem, 'user');
-    adicionarMensagemAoHistorico(mensagem, 'user');
+    adicionarMensagemAoHistorico(mensagem, 'user', conversationId);
 
     input.value = '';
     input.style.height = 'auto';
@@ -82,8 +93,12 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
     sendBtn.style.display = 'none';
     stopBtn.style.display = 'flex';
+    
+    conversation.abortController = new AbortController();
+    abortControllers[conversationId] = conversation.abortController;
 
-    abortController = new AbortController();
+    conversation.streaming = true;
+    conversation.currentResponse = '';
 
     try {
         const response = await fetch('/send_message', {
@@ -95,7 +110,7 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
                 message: mensagem,
                 conversation_id: conversationId
             }),
-            signal: abortController.signal
+            signal: conversation.abortController.signal
         });
 
         if (!response.ok) {
@@ -104,7 +119,8 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
-        let accumulatedMessage = '';
+        
+        let streamingDiv = null;
 
         while (true) {
             const { value, done } = await reader.read();
@@ -118,11 +134,17 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
                     try {
                         const jsonData = JSON.parse(line.slice(6));
                         if (jsonData.content) {
-                            accumulatedMessage += jsonData.content;
+                            conversation.currentResponse += jsonData.content;
                             
-                            // Verificar se ainda estamos na mesma conversa
                             if (window.conversaAtual && window.conversaAtual.id === conversationId) {
-                                loadingDiv.innerHTML = `<p>${accumulatedMessage.replace(/\n/g, '<br>')}</p>`;
+                                if (!streamingDiv) {
+                                    loadingDiv.remove();
+                                    streamingDiv = document.createElement('div');
+                                    streamingDiv.className = 'message assistant streaming-message';
+                                    chatContainer.appendChild(streamingDiv);
+                                }
+                                
+                                streamingDiv.innerHTML = `<div class="message-content"><p>${conversation.currentResponse.replace(/\n/g, '<br>')}</p></div>`;
                                 chatContainer.scrollTop = chatContainer.scrollHeight;
                             }
                         }
@@ -133,22 +155,21 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             }
         }
 
-        loadingDiv.remove();
+        if (streamingDiv) {
+            streamingDiv.remove();
+        } else {
+            loadingDiv.remove();
+        }
         
-        // Verificar novamente se ainda estamos na mesma conversa antes de adicionar a resposta
         if (window.conversaAtual && window.conversaAtual.id === conversationId) {
-            // Adicionar resposta da IA
-            adicionarMensagem(chatContainer, accumulatedMessage, 'assistant');
-            adicionarMensagemAoHistorico(accumulatedMessage, 'assistant');
-            
-            // Forçar atualização da UI
+            adicionarMensagem(chatContainer, conversation.currentResponse, 'assistant');
             window.dispatchEvent(new CustomEvent('historicoAtualizado'));
             window.dispatchEvent(new CustomEvent('mensagemEnviada'));
         } else {
             console.log(`[DEBUG] Conversa mudou durante streaming. Não atualizando UI.`);
-            // Salvar a mensagem no histórico mesmo que a conversa tenha mudado
-            adicionarMensagemAoHistorico(accumulatedMessage, 'assistant', conversationId);
         }
+        
+        adicionarMensagemAoHistorico(conversation.currentResponse, 'assistant', conversationId);
         
     } catch (erro) {
         if (erro.name === 'AbortError') {
@@ -159,7 +180,6 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             loadingDiv.remove();
             const errorMsg = 'Erro ao conectar com o servidor. Por favor, tente novamente.';
             
-            // Verificar se ainda estamos na mesma conversa
             if (window.conversaAtual && window.conversaAtual.id === conversationId) {
                 adicionarMensagem(chatContainer, errorMsg, 'assistant');
             }
@@ -167,14 +187,34 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             adicionarMensagemAoHistorico(errorMsg, 'assistant', conversationId);
         }
     } finally {
+        if (conversation) {
+            conversation.streaming = false;
+            conversation.abortController = null;
+        }
+        delete abortControllers[conversationId];
+        
         sendBtn.style.display = 'flex';
         stopBtn.style.display = 'none';
-        abortController = null;
     }
 }
 
 export function interromperResposta() {
-    if (abortController) {
-        abortController.abort();
+    const conversationId = window.conversaAtual?.id;
+    if (!conversationId) return;
+    
+    console.log(`[DEBUG] Interrompendo resposta para conversa: ${conversationId}`);
+    
+    if (abortControllers[conversationId]) {
+        abortControllers[conversationId].abort();
+    }
+    
+    const conversation = window.conversations[conversationId];
+    if (conversation && conversation.eventSource) {
+        conversation.eventSource.close();
+        conversation.eventSource = null;
+    }
+    
+    if (conversation) {
+        conversation.streaming = false;
     }
 }

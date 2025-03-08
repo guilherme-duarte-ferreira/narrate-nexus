@@ -29,6 +29,25 @@ import {
 // Estado global das conversas
 window.conversations = {};
 
+// Função para inicializar uma conversa na estrutura global
+window.inicializarConversa = function(conversationId) {
+    if (!window.conversations[conversationId]) {
+        console.log(`[DEBUG] Inicializando estrutura para conversa ${conversationId}`);
+        window.conversations[conversationId] = {
+            data: { 
+                id: conversationId,
+                title: "Nova Conversa",
+                messages: []
+            },
+            streaming: false,
+            currentResponse: '',
+            eventSource: null,
+            abortController: null
+        };
+    }
+    return window.conversations[conversationId];
+};
+
 // Função para copiar código - melhorada para preservar indentação
 window.copiarCodigo = function(button) {
     const codeContainer = button.closest('.code-container');
@@ -70,6 +89,51 @@ window.copiarMensagem = function(button) {
         console.error('Erro ao copiar mensagem:', err);
         alert('Não foi possível copiar a mensagem. Por favor, tente novamente.');
     });
+};
+
+// Função para regenerar resposta (útil para depuração)
+window.regenerarResposta = function(button) {
+    if (!window.conversaAtual) {
+        console.error('[ERRO] Sem conversa ativa para regenerar resposta');
+        return;
+    }
+    
+    const messageDiv = button.closest('.message');
+    const conversationId = window.conversaAtual.id;
+    
+    // Encontrar a última mensagem do usuário na conversa atual
+    if (window.conversations[conversationId] && 
+        window.conversations[conversationId].data && 
+        window.conversations[conversationId].data.messages) {
+        
+        const messages = window.conversations[conversationId].data.messages;
+        let lastUserMessage = null;
+        
+        // Percorrer mensagens de trás para frente para encontrar a última do usuário
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === 'user') {
+                lastUserMessage = messages[i].content;
+                break;
+            }
+        }
+        
+        if (lastUserMessage) {
+            console.log(`[DEBUG] Regenerando resposta para mensagem: ${lastUserMessage.substring(0, 30)}...`);
+            
+            // Remover a mensagem atual da IA
+            messageDiv.remove();
+            
+            // Re-enviar a mensagem do usuário para gerar nova resposta
+            const chatContainer = document.querySelector('.chat-container');
+            const sendBtn = document.getElementById('send-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const dummyInput = { value: '' };
+            
+            enviarMensagem(lastUserMessage, dummyInput, chatContainer, sendBtn, stopBtn);
+        } else {
+            console.error('[ERRO] Não foi possível encontrar a última mensagem do usuário');
+        }
+    }
 };
 
 export {

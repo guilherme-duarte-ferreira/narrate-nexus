@@ -1,4 +1,3 @@
-
 import { adicionarMensagem } from './chatUI.js';
 
 export function carregarConversa(id) {
@@ -45,7 +44,8 @@ export function carregarConversa(id) {
             window.conversations[id] = {
                 data: conversa,
                 streaming: false,
-                currentResponse: ''
+                currentResponse: '',
+                eventSource: null // Adicionado para suportar SSE por conversa
             };
 
             const chatContainer = document.querySelector('.chat-container');
@@ -270,13 +270,15 @@ export function adicionarMensagemAoHistorico(mensagem, tipo, conversationId = nu
     }
     
     try {
+        const message = {
+            content: mensagem,
+            role: tipo,
+            timestamp: new Date().toISOString()
+        };
+        
         // Adicionar mensagem ao histórico da conversa atual
         if (window.conversaAtual && window.conversaAtual.id === conversationId) {
-            window.conversaAtual.messages.push({
-                content: mensagem,
-                role: tipo,
-                timestamp: new Date().toISOString()
-            });
+            window.conversaAtual.messages.push(message);
         }
         
         // Adicionar também à estrutura de dados de conversas global
@@ -284,11 +286,7 @@ export function adicionarMensagemAoHistorico(mensagem, tipo, conversationId = nu
             window.conversations[conversationId].data.messages = [];
         }
         
-        window.conversations[conversationId].data.messages.push({
-            content: mensagem,
-            role: tipo,
-            timestamp: new Date().toISOString()
-        });
+        window.conversations[conversationId].data.messages.push(message);
         
         console.log(`[DEBUG] Mensagem adicionada com sucesso à conversa ${conversationId}`);
         
@@ -299,18 +297,8 @@ export function adicionarMensagemAoHistorico(mensagem, tipo, conversationId = nu
         console.error(`[ERRO CRÍTICO] Falha ao adicionar mensagem à conversa ${conversationId}:`, err);
     }
     
-    // Salvar a conversa no servidor
-    fetch('/save_message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            conversation_id: conversationId,
-            content: mensagem,
-            role: tipo
-        })
-    }).catch(err => {
-        console.error('[ERRO] Falha ao salvar mensagem no servidor:', err);
-    });
+    // IMPORTANTE: Removido a chamada fetch para /save_message aqui para evitar duplicação
+    // O backend já salva a mensagem ao final do streaming
 }
 
 export function renomearConversa(id) {
@@ -404,8 +392,11 @@ export function excluirConversa(id) {
                 window.conversas = window.conversas.filter(c => c.id !== id);
             }
             
-            // Remover da estrutura global de conversas
+            // Remover da estrutura global de conversas e finalizar qualquer streaming em andamento
             if (window.conversations && window.conversations[id]) {
+                if (window.conversations[id].eventSource) {
+                    window.conversations[id].eventSource.close();
+                }
                 delete window.conversations[id];
             }
             

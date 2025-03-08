@@ -1,12 +1,13 @@
 
 import { mostrarCarregamento } from './chatUI.js';
 import { adicionarMensagem } from './chatUI.js';
-import { adicionarMensagemAoHistorico, criarNovaConversa } from './chatStorage.js';
+import { adicionarMensagemAoHistorico, criarNovaConversa, atualizarListaConversas } from './chatStorage.js';
 
 let abortControllers = {};
 
 function inicializarConversa(conversationId) {
     if (!window.conversations[conversationId]) {
+        // console.log(`[DEBUG] Inicializando estrutura para conversa ${conversationId}`);
         window.conversations[conversationId] = {
             data: { 
                 id: conversationId,
@@ -41,7 +42,7 @@ export function atualizarBotoes(sendBtn, stopBtn) {
         stopBtn.style.display = 'none';
     }
     
-    console.log(`[DEBUG] Botões atualizados para conversa ${conversationId}: streaming=${conversation?.streaming}`);
+    // console.log(`[DEBUG] Botões atualizados para conversa ${conversationId}: streaming=${conversation?.streaming}`);
 }
 
 export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, stopBtn) {
@@ -60,6 +61,8 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
         adicionarMensagem(chatContainer, mensagem, 'user');
         adicionarMensagemAoHistorico(mensagem, 'user');
+        // Atualiza lista de conversas após enviar mensagem
+        atualizarListaConversas();
 
         const loadingDiv = mostrarCarregamento(chatContainer);
         try {
@@ -87,6 +90,8 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             }
             
             window.dispatchEvent(new CustomEvent('historicoAtualizado'));
+            // Atualiza lista de conversas após receber resposta
+            atualizarListaConversas();
         } catch (error) {
             loadingDiv.remove();
             const errorMsg = "Erro ao processar o vídeo";
@@ -97,17 +102,19 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
     }
 
     if (!window.conversaAtual) {
-        console.log("[DEBUG] Criando nova conversa...");
+        // console.log("[DEBUG] Criando nova conversa...");
         criarNovaConversa();
     }
 
     const conversationId = window.conversaAtual.id;
-    console.log(`[DEBUG] Enviando mensagem para conversa: ${conversationId}`);
+    // console.log(`[DEBUG] Enviando mensagem para conversa: ${conversationId}`);
 
     const conversation = inicializarConversa(conversationId);
     
     adicionarMensagem(chatContainer, mensagem, 'user');
     adicionarMensagemAoHistorico(mensagem, 'user', conversationId);
+    // Atualiza lista de conversas após enviar mensagem do usuário
+    atualizarListaConversas();
 
     input.value = '';
     input.style.height = 'auto';
@@ -189,15 +196,17 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             window.dispatchEvent(new CustomEvent('historicoAtualizado'));
             window.dispatchEvent(new CustomEvent('mensagemEnviada'));
         } else {
-            console.log(`[DEBUG] Conversa mudou durante streaming. Não atualizando UI.`);
+            // console.log(`[DEBUG] Conversa mudou durante streaming. Não atualizando UI.`);
         }
         
         // Sempre salvar a mensagem no histórico local, independentemente da conversa ativa
         adicionarMensagemAoHistorico(conversation.currentResponse, 'assistant', conversationId);
+        // Atualiza lista de conversas após receber resposta
+        atualizarListaConversas();
         
     } catch (erro) {
         if (erro.name === 'AbortError') {
-            console.log('Geração de resposta interrompida pelo usuário');
+            // console.log('Geração de resposta interrompida pelo usuário');
             if (window.conversaAtual && window.conversaAtual.id === conversationId) {
                 loadingDiv.remove();
             }
@@ -232,7 +241,7 @@ export function interromperResposta() {
     const conversationId = window.conversaAtual?.id;
     if (!conversationId) return;
     
-    console.log(`[DEBUG] Interrompendo resposta para conversa: ${conversationId}`);
+    // console.log(`[DEBUG] Interrompendo resposta para conversa: ${conversationId}`);
     
     if (abortControllers[conversationId]) {
         abortControllers[conversationId].abort();

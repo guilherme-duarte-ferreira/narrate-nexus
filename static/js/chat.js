@@ -33,7 +33,7 @@ window.conversations = {};
 // Função para inicializar uma conversa na estrutura global
 window.inicializarConversa = function(conversationId) {
     if (!window.conversations[conversationId]) {
-        console.log(`[DEBUG] Inicializando estrutura para conversa ${conversationId}`);
+        // console.log(`[DEBUG] Inicializando estrutura para conversa ${conversationId}`);
         window.conversations[conversationId] = {
             data: { 
                 id: conversationId,
@@ -119,7 +119,7 @@ window.regenerarResposta = function(button) {
         }
         
         if (lastUserMessage) {
-            console.log(`[DEBUG] Regenerando resposta para mensagem: ${lastUserMessage.substring(0, 30)}...`);
+            // console.log(`[DEBUG] Regenerando resposta para mensagem: ${lastUserMessage.substring(0, 30)}...`);
             
             // Remover a mensagem atual da IA
             messageDiv.remove();

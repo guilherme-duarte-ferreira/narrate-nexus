@@ -63,9 +63,13 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
     // Para mensagens normais
     if (!window.conversaAtual) {
-        console.warn("Criando nova conversa...");
+        console.log("Criando nova conversa...");
         criarNovaConversa();
     }
+
+    // Associar mensagem à conversa atual pelo ID
+    const conversationId = window.conversaAtual.id;
+    console.log(`[DEBUG] Enviando mensagem para conversa: ${conversationId}`);
 
     // Adicionar mensagem do usuário imediatamente
     adicionarMensagem(chatContainer, mensagem, 'user');
@@ -89,7 +93,7 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             },
             body: JSON.stringify({
                 message: mensagem,
-                conversation_id: window.conversaAtual?.id
+                conversation_id: conversationId
             }),
             signal: abortController.signal
         });
@@ -115,8 +119,12 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
                         const jsonData = JSON.parse(line.slice(6));
                         if (jsonData.content) {
                             accumulatedMessage += jsonData.content;
-                            loadingDiv.innerHTML = `<p>${accumulatedMessage.replace(/\n/g, '<br>')}</p>`;
-                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                            
+                            // Verificar se ainda estamos na mesma conversa
+                            if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+                                loadingDiv.innerHTML = `<p>${accumulatedMessage.replace(/\n/g, '<br>')}</p>`;
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            }
                         }
                     } catch (e) {
                         console.error('Erro ao processar chunk:', e);
@@ -127,13 +135,20 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
         loadingDiv.remove();
         
-        // Adicionar resposta da IA
-        adicionarMensagem(chatContainer, accumulatedMessage, 'assistant');
-        adicionarMensagemAoHistorico(accumulatedMessage, 'assistant');
-        
-        // Forçar atualização da UI
-        window.dispatchEvent(new CustomEvent('historicoAtualizado'));
-        window.dispatchEvent(new CustomEvent('mensagemEnviada'));
+        // Verificar novamente se ainda estamos na mesma conversa antes de adicionar a resposta
+        if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+            // Adicionar resposta da IA
+            adicionarMensagem(chatContainer, accumulatedMessage, 'assistant');
+            adicionarMensagemAoHistorico(accumulatedMessage, 'assistant');
+            
+            // Forçar atualização da UI
+            window.dispatchEvent(new CustomEvent('historicoAtualizado'));
+            window.dispatchEvent(new CustomEvent('mensagemEnviada'));
+        } else {
+            console.log(`[DEBUG] Conversa mudou durante streaming. Não atualizando UI.`);
+            // Salvar a mensagem no histórico mesmo que a conversa tenha mudado
+            adicionarMensagemAoHistorico(accumulatedMessage, 'assistant', conversationId);
+        }
         
     } catch (erro) {
         if (erro.name === 'AbortError') {
@@ -143,8 +158,13 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             console.error('Erro:', erro);
             loadingDiv.remove();
             const errorMsg = 'Erro ao conectar com o servidor. Por favor, tente novamente.';
-            adicionarMensagem(chatContainer, errorMsg, 'assistant');
-            adicionarMensagemAoHistorico(errorMsg, 'assistant');
+            
+            // Verificar se ainda estamos na mesma conversa
+            if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+                adicionarMensagem(chatContainer, errorMsg, 'assistant');
+            }
+            
+            adicionarMensagemAoHistorico(errorMsg, 'assistant', conversationId);
         }
     } finally {
         sendBtn.style.display = 'flex';

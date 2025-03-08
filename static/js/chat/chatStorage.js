@@ -33,11 +33,20 @@ export function carregarConversa(id) {
                 delete conversa.titulo;
             }
             
+            // Armazenar conversa atual e atualizar cache de conversas
             window.conversaAtual = conversa;
             if (!window.conversas) window.conversas = [];
             window.conversas = window.conversas.map(c => 
                 c.id === conversa.id ? conversa : c
             );
+
+            // Adicionar à estrutura de conversas global por ID
+            if (!window.conversations) window.conversations = {};
+            window.conversations[id] = {
+                data: conversa,
+                streaming: false,
+                currentResponse: ''
+            };
 
             const chatContainer = document.querySelector('.chat-container');
             const welcomeScreen = document.querySelector('.welcome-screen');
@@ -53,6 +62,7 @@ export function carregarConversa(id) {
             inputContainer.style.display = 'block';
             chatContainer.innerHTML = '';
             
+            // Renderizar mensagens da conversa carregada
             conversa.messages.forEach(msg => {
                 adicionarMensagem(chatContainer, msg.content, msg.role === 'assistant' ? 'assistant' : 'user');
             });
@@ -81,15 +91,6 @@ export function atualizarListaConversas() {
     if (chatList._clickListener) {
         chatList.removeEventListener('click', chatList._clickListener);
     }
-
-    // Criar listener temporário global para debug
-    if (window._globalClickDebugListener) {
-        document.removeEventListener('click', window._globalClickDebugListener);
-    }
-    window._globalClickDebugListener = function(e) {
-        console.log('[DEBUG GLOBAL] Clique em:', e.target);
-    };
-    document.addEventListener('click', window._globalClickDebugListener);
 
     fetch('/get_conversation_history')
         .then(response => response.json())
@@ -222,37 +223,94 @@ export function criarNovaConversa() {
     window.conversas.unshift(novaConversa);
     window.conversaAtual = novaConversa;
     
+    // Adicionar à estrutura de conversas global
+    if (!window.conversations) window.conversations = {};
+    window.conversations[novaConversa.id] = {
+        data: novaConversa,
+        streaming: false,
+        currentResponse: ''
+    };
+    
     window.dispatchEvent(new CustomEvent('historicoAtualizado'));
     
-    return novaConversa.id;
+    return novaConversa;
 }
 
-export function adicionarMensagemAoHistorico(mensagem, tipo) {
-    console.log('[DEBUG] Estado da conversaAtual:', window.conversaAtual);
+export function adicionarMensagemAoHistorico(mensagem, tipo, conversationId = null) {
+    // Se não especificado, usa a conversa atual
+    conversationId = conversationId || (window.conversaAtual ? window.conversaAtual.id : null);
     
+    console.log(`[DEBUG] Adicionando mensagem à conversa ${conversationId}, tipo: ${tipo}`);
+    
+    if (!conversationId) {
+        console.log('[CORREÇÃO] Não há conversa atual, criando uma nova');
+        const novaConversa = criarNovaConversa();
+        conversationId = novaConversa.id;
+    }
+    
+    // Referência à conversa na estrutura global de conversas
+    let conversation = window.conversations[conversationId];
+    
+    if (!conversation) {
+        console.log(`[ERRO] Conversa ${conversationId} não encontrada na estrutura global`);
+        return;
+    }
+    
+    // Verificar se a estrutura da conversa no estado global está correta
     if (!window.conversaAtual || !Array.isArray(window.conversaAtual.messages)) {
-        console.log('[CORREÇÃO] Criando nova conversa devido a estado inválido');
+        console.log('[CORREÇÃO] Estado da conversa atual inválido, corrigindo');
         window.conversaAtual = {
-            id: Date.now().toString(),
-            title: "Nova conversa",
+            id: conversationId,
+            title: window.conversations[conversationId].data.title || "Nova conversa",
             messages: []
         };
+        
+        // Atualizar na estrutura global
+        window.conversations[conversationId].data = window.conversaAtual;
     }
     
     try {
-        window.conversaAtual.messages.push({
+        // Adicionar mensagem ao histórico da conversa atual
+        if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+            window.conversaAtual.messages.push({
+                content: mensagem,
+                role: tipo,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        // Adicionar também à estrutura de dados de conversas global
+        if (!Array.isArray(window.conversations[conversationId].data.messages)) {
+            window.conversations[conversationId].data.messages = [];
+        }
+        
+        window.conversations[conversationId].data.messages.push({
             content: mensagem,
             role: tipo,
             timestamp: new Date().toISOString()
         });
-        console.log("[DEBUG] Mensagem adicionada com sucesso");
+        
+        console.log(`[DEBUG] Mensagem adicionada com sucesso à conversa ${conversationId}`);
         
         window.dispatchEvent(new CustomEvent('historicoAtualizado'));
         window.dispatchEvent(new CustomEvent('mensagemAdicionada'));
         
     } catch (err) {
-        console.error("[ERRO CRÍTICO] Falha ao adicionar mensagem:", err);
+        console.error(`[ERRO CRÍTICO] Falha ao adicionar mensagem à conversa ${conversationId}:`, err);
     }
+    
+    // Salvar a conversa no servidor
+    fetch('/save_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            conversation_id: conversationId,
+            content: mensagem,
+            role: tipo
+        })
+    }).catch(err => {
+        console.error('[ERRO] Falha ao salvar mensagem no servidor:', err);
+    });
 }
 
 export function renomearConversa(id) {
@@ -282,20 +340,25 @@ export function renomearConversa(id) {
         if (data.success) {
             console.log('[DEBUG] Conversa renomeada com sucesso');
             
-            // Se for a conversa atual, recarregar a conversa do backend
+            // Atualizar na conversa atual se for a mesma
             if (window.conversaAtual && window.conversaAtual.id === id) {
-                carregarConversa(id); // Recarregar do backend para garantir sincronização
-            } else {
-                // Atualizar o título na memória
-                if (window.conversas) {
-                    window.conversas = window.conversas.map(c => 
-                        c.id === id ? {...c, title: novoTitulo.trim()} : c
-                    );
-                }
-                
-                // Atualizar a lista de conversas
-                atualizarListaConversas();
+                window.conversaAtual.title = novoTitulo.trim();
             }
+            
+            // Atualizar na estrutura global de conversas
+            if (window.conversations && window.conversations[id]) {
+                window.conversations[id].data.title = novoTitulo.trim();
+            }
+            
+            // Atualizar na lista de conversas em memória
+            if (window.conversas) {
+                window.conversas = window.conversas.map(c => 
+                    c.id === id ? {...c, title: novoTitulo.trim()} : c
+                );
+            }
+            
+            // Atualizar a lista de conversas na UI
+            atualizarListaConversas();
             
             // Notificar sistema sobre alteração
             window.dispatchEvent(new CustomEvent('conversaAtualizada', { 
@@ -339,6 +402,11 @@ export function excluirConversa(id) {
             // Remover da memória
             if (window.conversas) {
                 window.conversas = window.conversas.filter(c => c.id !== id);
+            }
+            
+            // Remover da estrutura global de conversas
+            if (window.conversations && window.conversations[id]) {
+                delete window.conversations[id];
             }
             
             // Se a conversa atual foi excluída, voltar para a tela inicial

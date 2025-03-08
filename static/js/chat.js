@@ -26,6 +26,9 @@ import {
     melhorarBlocosCodigo
 } from './chat/chatUtils.js';
 
+// Estado global das conversas
+window.conversations = {};
+
 // Função para copiar código - melhorada para preservar indentação
 window.copiarCodigo = function(button) {
     const codeContainer = button.closest('.code-container');

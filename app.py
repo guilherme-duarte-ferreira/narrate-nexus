@@ -56,23 +56,28 @@ def send_message():
 
     if not conversation_id:
         conversation_id = create_new_conversation()
+        print(f"[DEBUG] Nova conversa criada com ID: {conversation_id}")
+    else:
+        print(f"[DEBUG] Usando conversa existente: {conversation_id}")
 
     # Salvar mensagem do usuário
     add_message_to_conversation(conversation_id, message, "user")
+    print(f"[DEBUG] Mensagem do usuário salva na conversa: {conversation_id}")
 
     # Processar resposta da IA
     accumulated_response = []
     
     def generate_streamed_response():
-        for part in process_with_ai_stream(message):
+        for part in process_with_ai_stream(message, conversation_id):
             if part:
                 accumulated_response.append(part)
-                yield f"data: {json.dumps({'content': part})}\n\n"
+                yield f"data: {json.dumps({'content': part, 'conversation_id': conversation_id})}\n\n"
         
         # Salvar a resposta completa da IA
         if accumulated_response:
             complete_response = ''.join(accumulated_response)
             add_message_to_conversation(conversation_id, complete_response, "assistant")
+            print(f"[DEBUG] Resposta completa da IA salva na conversa: {conversation_id}")
 
     response = Response(generate_streamed_response(), content_type="text/event-stream")
     response.headers['Cache-Control'] = 'no-cache'
@@ -88,9 +93,10 @@ def save_message():
         
         if not all([conversation_id, content, role]):
             return jsonify({'error': 'Dados incompletos'}), 400
-            
+        
+        print(f"[DEBUG] Salvando mensagem para conversa: {conversation_id}, role: {role}")
         add_message_to_conversation(conversation_id, content, role)
-        return jsonify({'status': 'success'})
+        return jsonify({'status': 'success', 'conversation_id': conversation_id})
     except Exception as e:
         print(f"Erro ao salvar mensagem: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -123,6 +129,7 @@ def process_youtube():
                 comando,
                 "user"
             )
+            print(f"[DEBUG] Comando do usuário salvo na conversa: {conversation_id}")
 
         # Salvar transcrição com título na conversa
         formatted_response = f"📹 {video_title}\n\n{cleaned_text}"
@@ -132,10 +139,12 @@ def process_youtube():
                 formatted_response,
                 "assistant"
             )
+            print(f"[DEBUG] Resposta do YouTube salva na conversa: {conversation_id}")
             
         return jsonify({
             'text': formatted_response,
-            'title': video_title
+            'title': video_title,
+            'conversation_id': conversation_id
         })
         
     except Exception as e:
@@ -162,7 +171,7 @@ def handle_rename_conversation(conversation_id):
         success = rename_conversation(conversation_id, new_title)
         if success:
             print(f"[BACKEND] Conversa renomeada com sucesso para: {new_title}")
-            return jsonify({'success': True, 'new_title': new_title})
+            return jsonify({'success': True, 'new_title': new_title, 'conversation_id': conversation_id})
         else:
             print("[BACKEND] Falha ao renomear conversa")
             return jsonify({'error': 'Falha ao renomear conversa'}), 500
@@ -178,7 +187,7 @@ def handle_delete_conversation(conversation_id):
         success = delete_conversation(conversation_id)
         if success:
             print(f"[BACKEND] Conversa {conversation_id} excluída com sucesso")
-            return jsonify({'success': True})
+            return jsonify({'success': True, 'conversation_id': conversation_id})
         else:
             print(f"[BACKEND] Falha ao excluir conversa {conversation_id}")
             return jsonify({'error': 'Falha ao excluir conversa'}), 500
@@ -186,8 +195,12 @@ def handle_delete_conversation(conversation_id):
         print(f"[BACKEND] Erro ao excluir conversa: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-def process_with_ai(text):
+def process_with_ai(text, conversation_id=None):
     try:
+        # Incluir o ID da conversa no contexto para rastreamento
+        context_header = f"[Conversa: {conversation_id}] " if conversation_id else ""
+        print(f"{context_header}Processando com IA: {text[:50]}...")
+        
         payload = {
             "model": MODEL_NAME,
             "messages": [
@@ -211,8 +224,12 @@ def process_with_ai(text):
         print(f"[Debug] Erro inesperado: {str(e)}")
         return "Ocorreu um erro inesperado ao processar sua mensagem."
 
-def process_with_ai_stream(text):
+def process_with_ai_stream(text, conversation_id=None):
     try:
+        # Incluir o ID da conversa no contexto para rastreamento
+        context_header = f"[Conversa: {conversation_id}] " if conversation_id else ""
+        print(f"{context_header}Iniciando streaming para: {text[:50]}...")
+        
         payload = {
             "model": MODEL_NAME,
             "messages": [
@@ -234,6 +251,7 @@ def process_with_ai_stream(text):
                         delta = response_data['choices'][0]['delta']
                         if "content" in delta:
                             content = delta["content"].encode('latin1').decode('utf-8', errors='ignore')
+                            print(f"{context_header}Chunk: {len(content)} caracteres")
                             yield content
                 except json.JSONDecodeError:
                     print(f"[Debug] Erro ao decodificar JSON: {line}")

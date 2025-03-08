@@ -15,6 +15,12 @@ export function renderMessage(text) {
         return `<pre>${text}</pre>`;
     }
 
+    // Capturar ID da conversa atual para contexto
+    const conversationId = window.conversaAtual?.id;
+    if (conversationId) {
+        console.log(`[DEBUG] Renderizando mensagem para conversa: ${conversationId}`);
+    }
+
     // Configurar highlight.js
     hljs.configure({
         cssSelector: 'pre code',
@@ -63,7 +69,9 @@ export function renderMessage(text) {
             'code': ['class'],  // Permitir classes em <code> para detectar a linguagem
             'span': ['class'],
             'a': ['href', 'target', 'rel'],
-            'img': ['src', 'alt']
+            'img': ['src', 'alt'],
+            // Adicionar data-* attributes para manter isolamento de contexto
+            '*': ['data-conversation-id']
         };
 
         // Parsear o Markdown
@@ -74,7 +82,7 @@ export function renderMessage(text) {
         const finalHtml = DOMPurify.sanitize(htmlContent, {
             ALLOWED_TAGS: allowedTags,
             ALLOWED_ATTR: allowedAttributes,
-            ADD_ATTR: ['target'],
+            ADD_ATTR: ['target', 'data-conversation-id'],
         });
         
         console.log('[DEBUG] HTML após sanitização (primeiros 200 caracteres):', finalHtml.substring(0, 200));

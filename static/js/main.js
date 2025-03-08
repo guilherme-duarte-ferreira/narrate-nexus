@@ -22,6 +22,7 @@ import { copiarMensagem, regenerarResposta } from './chat/chatUtils.js';
 window.currentModel = 'gemma2:2b';
 window.conversas = [];
 window.conversaAtual = null;
+window.conversations = {}; // Nova estrutura global para mapear conversas por ID
 window.copiarMensagem = copiarMensagem;
 window.regenerarResposta = regenerarResposta;
 
@@ -108,14 +109,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const message = chatInput.value.trim();
             if (!message) return;
             
+            // Verificar se há uma conversa ativa
+            if (!window.conversaAtual) {
+                console.log('[DEBUG] Sem conversa ativa, criando nova...');
+                criarNovaConversa();
+            }
+            
+            // Armazenar o ID da conversa atual para garantir que estamos na mesma conversa após o streaming
+            const currentConversationId = window.conversaAtual.id;
+            console.log(`[DEBUG] Enviando mensagem para conversa: ${currentConversationId}`);
+            
             chatBar.clear();
             await enviarMensagem(message, chatInput, chatContainer, sendBtn, stopBtn);
-            atualizarListaConversas(); // Atualizar histórico após enviar mensagem
             
-            // Adicionar barras de título aos blocos de código
-            setTimeout(() => {
-                melhorarBlocosCodigo();
-            }, 100);
+            // Verificar se ainda estamos na mesma conversa
+            if (window.conversaAtual && window.conversaAtual.id === currentConversationId) {
+                atualizarListaConversas(); // Atualizar histórico após enviar mensagem
+                
+                // Adicionar barras de título aos blocos de código
+                setTimeout(() => {
+                    melhorarBlocosCodigo();
+                }, 100);
+            } else {
+                console.log('[DEBUG] Conversa mudou durante processamento, não atualizando UI');
+            }
         });
     }
 
@@ -157,10 +174,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar lista de conversas
     atualizarListaConversas();
 
-    // Evento global para atualização do histórico
-    window.addEventListener('conversaAtualizada', () => {
+    // Eventos para gerenciamento de estado isolado
+    window.addEventListener('conversaCarregada', (e) => {
+        console.log('[DEBUG] Evento conversaCarregada detectado');
+        if (e.detail && e.detail.id) {
+            console.log(`[DEBUG] Conversa ${e.detail.id} carregada`);
+        }
+    });
+    
+    window.addEventListener('conversaAtualizada', (e) => {
         console.log('[DEBUG] Evento conversaAtualizada detectado');
+        if (e.detail && e.detail.id) {
+            console.log(`[DEBUG] Conversa ${e.detail.id} atualizada`);
+        }
         atualizarListaConversas();
+    });
+    
+    window.addEventListener('mensagemEnviada', (e) => {
+        console.log('[DEBUG] Evento mensagemEnviada detectado');
+        if (window.conversaAtual) {
+            console.log(`[DEBUG] Mensagem enviada na conversa: ${window.conversaAtual.id}`);
+        }
     });
     
     // Processar blocos de código já existentes (ao carregar uma conversa)

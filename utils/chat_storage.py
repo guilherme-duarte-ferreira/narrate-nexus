@@ -127,6 +127,8 @@ def get_conversation_history():
 
 def add_message_to_conversation(conversation_id, content, role):
     """Adiciona uma mensagem a uma conversa existente"""
+    print(f"[DEBUG] Adicionando mensagem tipo '{role}' à conversa {conversation_id}")
+    
     conversation = get_conversation_by_id(conversation_id)
     
     if not conversation:
@@ -147,11 +149,15 @@ def add_message_to_conversation(conversation_id, content, role):
     conversation["messages"].append(message)
     conversation["timestamp"] = datetime.now().isoformat()
     
+    # Definir título automaticamente com base na primeira mensagem do usuário
     if role == "user" and len([m for m in conversation["messages"] if m["role"] == "user"]) == 1:
         conversation["title"] = content[:30] + "..." if len(content) > 30 else content
+        print(f"[DEBUG] Título da conversa atualizado para: {conversation['title']}")
     
     save_conversation(conversation)
     update_index(conversation)
+    
+    return True
 
 def delete_conversation(conversation_id):
     """Exclui uma conversa e sua entrada no índice"""

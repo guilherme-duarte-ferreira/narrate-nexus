@@ -8,7 +8,8 @@ import {
 
 import {
     enviarMensagem,
-    interromperResposta
+    interromperResposta,
+    atualizarBotoes
 } from './chat/chatActions.js';
 
 import {
@@ -148,5 +149,6 @@ export {
     adicionarMensagemAoHistorico,
     renomearConversa,
     excluirConversa,
-    melhorarBlocosCodigo
+    melhorarBlocosCodigo,
+    atualizarBotoes
 };

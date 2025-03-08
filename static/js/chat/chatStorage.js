@@ -1,4 +1,5 @@
 import { adicionarMensagem } from './chatUI.js';
+import { atualizarBotoes } from './chatActions.js';
 
 export function carregarConversa(id) {
     console.log('[DEBUG] Carregando conversa:', id);
@@ -41,11 +42,15 @@ export function carregarConversa(id) {
 
             // Adicionar à estrutura de conversas global por ID
             if (!window.conversations) window.conversations = {};
+            
+            // Preservar o estado de streaming se já existir
+            const existingConversation = window.conversations[id];
             window.conversations[id] = {
                 data: conversa,
-                streaming: false,
-                currentResponse: '',
-                eventSource: null // Adicionado para suportar SSE por conversa
+                streaming: existingConversation ? existingConversation.streaming : false,
+                currentResponse: existingConversation ? existingConversation.currentResponse : '',
+                eventSource: existingConversation ? existingConversation.eventSource : null,
+                abortController: existingConversation ? existingConversation.abortController : null
             };
 
             const chatContainer = document.querySelector('.chat-container');
@@ -68,6 +73,13 @@ export function carregarConversa(id) {
             });
 
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Atualizar os botões após carregar a conversa
+            const sendBtn = document.getElementById('send-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            if (sendBtn && stopBtn) {
+                atualizarBotoes(sendBtn, stopBtn);
+            }
             
             window.dispatchEvent(new CustomEvent('conversaCarregada'));
             window.dispatchEvent(new CustomEvent('historicoAtualizado'));
@@ -394,6 +406,10 @@ export function excluirConversa(id) {
             
             // Remover da estrutura global de conversas e finalizar qualquer streaming em andamento
             if (window.conversations && window.conversations[id]) {
+                // Interromper streaming se existir
+                if (window.conversations[id].abortController) {
+                    window.conversations[id].abortController.abort();
+                }
                 if (window.conversations[id].eventSource) {
                     window.conversations[id].eventSource.close();
                 }
@@ -410,6 +426,14 @@ export function excluirConversa(id) {
                 welcomeScreen.style.display = 'flex';
                 chatContainer.style.display = 'none';
                 inputContainer.style.display = 'none';
+                
+                // Atualizar botões para estado inicial
+                const sendBtn = document.getElementById('send-btn');
+                const stopBtn = document.getElementById('stop-btn');
+                if (sendBtn && stopBtn) {
+                    sendBtn.style.display = 'flex';
+                    stopBtn.style.display = 'none';
+                }
             }
             
             // Atualizar a lista de conversas

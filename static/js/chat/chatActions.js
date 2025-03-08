@@ -1,3 +1,4 @@
+
 import { mostrarCarregamento } from './chatUI.js';
 import { adicionarMensagem } from './chatUI.js';
 import { adicionarMensagemAoHistorico, criarNovaConversa } from './chatStorage.js';
@@ -19,6 +20,28 @@ function inicializarConversa(conversationId) {
         };
     }
     return window.conversations[conversationId];
+}
+
+// Função para atualizar os botões com base na conversa atual
+export function atualizarBotoes(sendBtn, stopBtn) {
+    const conversationId = window.conversaAtual?.id;
+    if (!conversationId) {
+        // Se não houver conversa ativa, mostrar apenas o botão de enviar
+        sendBtn.style.display = 'flex';
+        stopBtn.style.display = 'none';
+        return;
+    }
+    
+    const conversation = window.conversations[conversationId];
+    if (conversation && conversation.streaming) {
+        sendBtn.style.display = 'none';
+        stopBtn.style.display = 'flex';
+    } else {
+        sendBtn.style.display = 'flex';
+        stopBtn.style.display = 'none';
+    }
+    
+    console.log(`[DEBUG] Botões atualizados para conversa ${conversationId}: streaming=${conversation?.streaming}`);
 }
 
 export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, stopBtn) {
@@ -91,13 +114,13 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
     
     const loadingDiv = mostrarCarregamento(chatContainer);
 
-    sendBtn.style.display = 'none';
-    stopBtn.style.display = 'flex';
+    // Marcar conversa como streaming e atualizar botões
+    conversation.streaming = true;
+    atualizarBotoes(sendBtn, stopBtn);
     
     conversation.abortController = new AbortController();
     abortControllers[conversationId] = conversation.abortController;
 
-    conversation.streaming = true;
     conversation.currentResponse = '';
 
     try {
@@ -157,7 +180,7 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
 
         if (streamingDiv) {
             streamingDiv.remove();
-        } else {
+        } else if (window.conversaAtual && window.conversaAtual.id === conversationId) {
             loadingDiv.remove();
         }
         
@@ -169,15 +192,20 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
             console.log(`[DEBUG] Conversa mudou durante streaming. Não atualizando UI.`);
         }
         
+        // Sempre salvar a mensagem no histórico local, independentemente da conversa ativa
         adicionarMensagemAoHistorico(conversation.currentResponse, 'assistant', conversationId);
         
     } catch (erro) {
         if (erro.name === 'AbortError') {
             console.log('Geração de resposta interrompida pelo usuário');
-            loadingDiv.remove();
+            if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+                loadingDiv.remove();
+            }
         } else {
             console.error('Erro:', erro);
-            loadingDiv.remove();
+            if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+                loadingDiv.remove();
+            }
             const errorMsg = 'Erro ao conectar com o servidor. Por favor, tente novamente.';
             
             if (window.conversaAtual && window.conversaAtual.id === conversationId) {
@@ -193,8 +221,10 @@ export async function enviarMensagem(mensagem, input, chatContainer, sendBtn, st
         }
         delete abortControllers[conversationId];
         
-        sendBtn.style.display = 'flex';
-        stopBtn.style.display = 'none';
+        // Atualizar os botões apenas se estamos na mesma conversa
+        if (window.conversaAtual && window.conversaAtual.id === conversationId) {
+            atualizarBotoes(sendBtn, stopBtn);
+        }
     }
 }
 
@@ -209,12 +239,18 @@ export function interromperResposta() {
     }
     
     const conversation = window.conversations[conversationId];
-    if (conversation && conversation.eventSource) {
-        conversation.eventSource.close();
-        conversation.eventSource = null;
-    }
-    
     if (conversation) {
+        if (conversation.eventSource) {
+            conversation.eventSource.close();
+            conversation.eventSource = null;
+        }
         conversation.streaming = false;
+        
+        // Atualizar botões após interromper
+        const sendBtn = document.getElementById('send-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        if (sendBtn && stopBtn) {
+            atualizarBotoes(sendBtn, stopBtn);
+        }
     }
 }

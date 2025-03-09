@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, jsonify, Response
 import json
 import os
@@ -5,6 +6,7 @@ from datetime import datetime
 import requests
 from utils.text_processor import split_text, clean_and_format_text
 from youtube_handler import YoutubeHandler
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from utils.chat_storage import (
     create_new_conversation,
     add_message_to_conversation,
@@ -16,6 +18,7 @@ from utils.chat_storage import (
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sua_chave_secreta_aqui'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 API_URL = "http://localhost:11434/v1/chat/completions"
 MODEL_NAME = "gemma2:2b"
@@ -91,6 +94,11 @@ def send_message():
         for part in process_with_ai_stream(message, conversation_id):
             if part:
                 accumulated_response.append(part)
+                # Emitir via WebSocket além do SSE
+                socketio.emit('message_chunk', {
+                    'content': part, 
+                    'conversation_id': conversation_id
+                }, room=conversation_id)
                 yield f"data: {json.dumps({'content': part, 'conversation_id': conversation_id})}\n\n"
         
         # Salvar a resposta completa da IA - APENAS UMA VEZ
@@ -98,6 +106,10 @@ def send_message():
             complete_response = ''.join(accumulated_response)
             print(f"[DEBUG] Salvando resposta única para {conversation_id}")
             add_message_to_conversation(conversation_id, complete_response, "assistant")
+            # Notificar todas as abas conectadas que a conversa foi atualizada
+            socketio.emit('conversation_updated', {
+                'conversation_id': conversation_id
+            }, broadcast=True)
             print(f"[DEBUG] Resposta completa da IA salva na conversa: {conversation_id}")
 
     response = Response(generate_streamed_response(), content_type="text/event-stream")
@@ -117,6 +129,12 @@ def save_message():
         
         print(f"[DEBUG] Salvando mensagem para conversa: {conversation_id}, role: {role}")
         add_message_to_conversation(conversation_id, content, role)
+        
+        # Notificar clientes via WebSocket
+        socketio.emit('conversation_updated', {
+            'conversation_id': conversation_id
+        }, broadcast=True)
+        
         return jsonify({'status': 'success', 'conversation_id': conversation_id})
     except Exception as e:
         print(f"Erro ao salvar mensagem: {str(e)}")
@@ -162,6 +180,11 @@ def process_youtube():
             )
             print(f"[DEBUG] Resposta do YouTube salva na conversa: {conversation_id}")
             
+            # Notificar via WebSocket
+            socketio.emit('conversation_updated', {
+                'conversation_id': conversation_id
+            }, broadcast=True)
+            
         return jsonify({
             'text': formatted_response,
             'title': video_title,
@@ -192,6 +215,13 @@ def handle_rename_conversation(conversation_id):
         success = rename_conversation(conversation_id, new_title)
         if success:
             print(f"[BACKEND] Conversa renomeada com sucesso para: {new_title}")
+            
+            # Notificar via WebSocket
+            socketio.emit('conversation_renamed', {
+                'conversation_id': conversation_id,
+                'new_title': new_title
+            }, broadcast=True)
+            
             return jsonify({'success': True, 'new_title': new_title, 'conversation_id': conversation_id})
         else:
             print("[BACKEND] Falha ao renomear conversa")
@@ -208,6 +238,12 @@ def handle_delete_conversation(conversation_id):
         success = delete_conversation(conversation_id)
         if success:
             print(f"[BACKEND] Conversa {conversation_id} excluída com sucesso")
+            
+            # Notificar via WebSocket
+            socketio.emit('conversation_deleted', {
+                'conversation_id': conversation_id
+            }, broadcast=True)
+            
             return jsonify({'success': True, 'conversation_id': conversation_id})
         else:
             print(f"[BACKEND] Falha ao excluir conversa {conversation_id}")
@@ -215,6 +251,30 @@ def handle_delete_conversation(conversation_id):
     except Exception as e:
         print(f"[BACKEND] Erro ao excluir conversa: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+# ---- WebSocket event handlers ----
+
+@socketio.on('connect')
+def handle_connect():
+    print(f"[SOCKET] Cliente conectado: {request.sid}")
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"[SOCKET] Cliente desconectado: {request.sid}")
+
+@socketio.on('join_conversation')
+def handle_join_conversation(data):
+    conversation_id = data.get('conversation_id')
+    if conversation_id:
+        join_room(conversation_id)
+        print(f"[SOCKET] Cliente {request.sid} entrou na sala: {conversation_id}")
+
+@socketio.on('leave_conversation')
+def handle_leave_conversation(data):
+    conversation_id = data.get('conversation_id')
+    if conversation_id:
+        leave_room(conversation_id)
+        print(f"[SOCKET] Cliente {request.sid} saiu da sala: {conversation_id}")
 
 def process_with_ai(text, conversation_id=None):
     try:
@@ -290,6 +350,7 @@ def process_with_ai_stream(text, conversation_id=None):
         print(f"[Debug] Erro inesperado: {str(e)}")
 
 if __name__ == '__main__':
-    print("[APLICAÇÃO] Iniciando servidor Flask...")
+    print("[APLICAÇÃO] Iniciando servidor Flask com SocketIO...")
     # Garanta que o servidor seja acessível de qualquer IP na sua rede local
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+

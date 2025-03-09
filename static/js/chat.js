@@ -27,13 +27,18 @@ import {
     melhorarBlocosCodigo
 } from './chat/chatUtils.js';
 
+import {
+    inicializarSync,
+    entrarNaSalaDeConversa
+} from './chat/chatSync.js';
+
 // Estado global das conversas
 window.conversations = {};
 
 // Função para inicializar uma conversa na estrutura global
 window.inicializarConversa = function(conversationId) {
     if (!window.conversations[conversationId]) {
-        // console.log(`[DEBUG] Inicializando estrutura para conversa ${conversationId}`);
+        // Inicializando estrutura para conversa
         window.conversations[conversationId] = {
             data: { 
                 id: conversationId,
@@ -43,7 +48,8 @@ window.inicializarConversa = function(conversationId) {
             streaming: false,
             currentResponse: '',
             eventSource: null,
-            abortController: null
+            abortController: null,
+            pendingUpdates: false
         };
     }
     return window.conversations[conversationId];
@@ -119,8 +125,6 @@ window.regenerarResposta = function(button) {
         }
         
         if (lastUserMessage) {
-            // console.log(`[DEBUG] Regenerando resposta para mensagem: ${lastUserMessage.substring(0, 30)}...`);
-            
             // Remover a mensagem atual da IA
             messageDiv.remove();
             
@@ -137,6 +141,20 @@ window.regenerarResposta = function(button) {
     }
 };
 
+// Inicializar a sincronização via WebSockets quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar WebSocket para sincronização entre abas
+    inicializarSync();
+    
+    // Configurar o listener de visibilidade para sincronização
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            // Atualizar a lista de conversas quando a aba ficar visível
+            atualizarListaConversas();
+        }
+    });
+});
+
 export {
     iniciarChat,
     mostrarTelaInicial,
@@ -150,5 +168,7 @@ export {
     renomearConversa,
     excluirConversa,
     melhorarBlocosCodigo,
-    atualizarBotoes
+    atualizarBotoes,
+    inicializarSync,
+    entrarNaSalaDeConversa
 };

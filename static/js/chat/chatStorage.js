@@ -1,10 +1,9 @@
 
 import { adicionarMensagem } from './chatUI.js';
 import { atualizarBotoes } from './chatActions.js';
+import { entrarNaSalaDeConversa } from './chatSync.js';
 
 export function carregarConversa(id) {
-    // console.log('[DEBUG] Carregando conversa:', id);
-    
     fetch(`/get_conversation/${id}`)
         .then(response => {
             if (!response.ok) throw new Error('HTTP error: ' + response.status);
@@ -16,10 +15,7 @@ export function carregarConversa(id) {
                 return;
             }
             
-            // console.log('[DEBUG] Conversa carregada:', conversa);
-            
             if (!conversa.messages) {
-                // console.log('[CONVERSÃO] Convertendo mensagens antigas para novo formato');
                 conversa.messages = conversa.mensagens || [];
                 delete conversa.mensagens;
             }
@@ -51,7 +47,8 @@ export function carregarConversa(id) {
                 streaming: existingConversation ? existingConversation.streaming : false,
                 currentResponse: existingConversation ? existingConversation.currentResponse : '',
                 eventSource: existingConversation ? existingConversation.eventSource : null,
-                abortController: existingConversation ? existingConversation.abortController : null
+                abortController: existingConversation ? existingConversation.abortController : null,
+                pendingUpdates: false
             };
 
             const chatContainer = document.querySelector('.chat-container');
@@ -81,6 +78,9 @@ export function carregarConversa(id) {
             if (sendBtn && stopBtn) {
                 atualizarBotoes(sendBtn, stopBtn);
             }
+            
+            // Entrar na sala de WebSocket para esta conversa
+            entrarNaSalaDeConversa(id);
             
             // Atualizar lista de conversas para refletir o chat ativo
             atualizarListaConversas();

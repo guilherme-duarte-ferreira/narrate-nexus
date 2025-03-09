@@ -4,7 +4,8 @@ import {
     iniciarChat,
     mostrarTelaInicial,
     adicionarMensagem,
-    melhorarBlocosCodigo
+    melhorarBlocosCodigo,
+    inicializarSync
 } from './chat.js';
 import { enviarMensagem, interromperResposta } from './chat/chatActions.js';
 import { 
@@ -30,7 +31,8 @@ let welcomeBar = null;
 let chatBar = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[DEBUG] DOM Carregado, inicializando aplicação...');
+    // Inicializar WebSocket para sincronização entre abas
+    inicializarSync();
     
     const welcomeForm = document.getElementById('welcome-form');
     const chatForm = document.getElementById('chat-form');
@@ -111,13 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Verificar se há uma conversa ativa
             if (!window.conversaAtual) {
-                console.log('[DEBUG] Sem conversa ativa, criando nova...');
                 criarNovaConversa();
             }
             
             // Armazenar o ID da conversa atual para garantir que estamos na mesma conversa após o streaming
             const currentConversationId = window.conversaAtual.id;
-            console.log(`[DEBUG] Enviando mensagem para conversa: ${currentConversationId}`);
             
             chatBar.clear();
             await enviarMensagem(message, chatInput, chatContainer, sendBtn, stopBtn);
@@ -130,16 +130,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     melhorarBlocosCodigo();
                 }, 100);
-            } else {
-                console.log('[DEBUG] Conversa mudou durante processamento, não atualizando UI');
             }
         });
     }
 
     // Configurar botão de nova conversa
     newChatBtn?.addEventListener('click', () => {
-        console.log('[DEBUG] Botão de nova conversa clicado');
-        
         if (window.conversaAtual) {
             atualizarListaConversas(); // Atualizar histórico antes de criar nova conversa
         }
@@ -176,24 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Eventos para gerenciamento de estado isolado
     window.addEventListener('conversaCarregada', (e) => {
-        console.log('[DEBUG] Evento conversaCarregada detectado');
         if (e.detail && e.detail.id) {
-            console.log(`[DEBUG] Conversa ${e.detail.id} carregada`);
+            // Conversa carregada
         }
     });
     
     window.addEventListener('conversaAtualizada', (e) => {
-        console.log('[DEBUG] Evento conversaAtualizada detectado');
         if (e.detail && e.detail.id) {
-            console.log(`[DEBUG] Conversa ${e.detail.id} atualizada`);
+            // Conversa atualizada
         }
         atualizarListaConversas();
     });
     
     window.addEventListener('mensagemEnviada', (e) => {
-        console.log('[DEBUG] Evento mensagemEnviada detectado');
         if (window.conversaAtual) {
-            console.log(`[DEBUG] Mensagem enviada na conversa: ${window.conversaAtual.id}`);
+            // Mensagem enviada 
         }
     });
     
@@ -213,8 +206,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     observer.observe(chatContainer, { childList: true, subtree: true });
     
-    // Log de inicialização concluída
-    console.log('[DEBUG] Aplicação inicializada com sucesso');
+    // Configurar o listener de visibilidade para sincronização
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            // Atualizar o estado quando a aba ficar visível
+            atualizarListaConversas();
+            
+            // Se houver uma conversa atual, verificar se há atualizações pendentes
+            if (window.conversaAtual && window.conversations[window.conversaAtual.id]?.pendingUpdates) {
+                carregarConversa(window.conversaAtual.id);
+                window.conversations[window.conversaAtual.id].pendingUpdates = false;
+            }
+        }
+    });
 });
 
 // Expor funções globalmente
@@ -225,3 +229,4 @@ window.interromperResposta = interromperResposta;
 window.renomearConversa = renomearConversa;
 window.excluirConversa = excluirConversa;
 window.melhorarBlocosCodigo = melhorarBlocosCodigo;
+

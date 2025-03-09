@@ -83,3 +83,27 @@ export function renderMessage(text) {
         return `<p>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
     }
 }
+
+/**
+ * Renderiza incrementalmente mensagens durante o streaming
+ * Versão otimizada para atualizações rápidas durante streaming
+ */
+export function renderStreamingMessage(text) {
+    // Para streaming, usamos uma versão simplificada para melhor performance
+    try {
+        if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+            return `<p>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+        }
+        
+        // Sanitizar o texto em Markdown
+        const htmlContent = marked.parse(text);
+        const finalHtml = DOMPurify.sanitize(htmlContent, {
+            ALLOWED_TAGS: ['p', 'strong', 'em', 'code', 'pre', 'br', 'ul', 'ol', 'li'],
+        });
+        
+        return finalHtml;
+    } catch (error) {
+        // Fallback seguro se houver erro
+        return `<p>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+    }
+}

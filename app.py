@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, jsonify, Response
 import json
 import os
@@ -18,7 +17,7 @@ from utils.chat_storage import (
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sua_chave_secreta_aqui'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
 
 API_URL = "http://localhost:11434/v1/chat/completions"
 MODEL_NAME = "gemma2:2b"
@@ -348,9 +347,4 @@ def process_with_ai_stream(text, conversation_id=None):
         print(f"[Debug] Erro na requisição HTTP: {str(e)}")
     except Exception as e:
         print(f"[Debug] Erro inesperado: {str(e)}")
-
-if __name__ == '__main__':
-    print("[APLICAÇÃO] Iniciando servidor Flask com SocketIO...")
-    # Garanta que o servidor seja acessível de qualquer IP na sua rede local
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
 

@@ -1,4 +1,3 @@
-
 /**
  * chatSync.js
  * Responsável pela sincronização entre sessões do chat via WebSockets
@@ -208,25 +207,32 @@ function atualizarMensagemEmStream(fragmento) {
     // Atualizar a mensagem com o novo fragmento
     const messageContent = streamingMessage.querySelector('.message-content');
     if (messageContent) {
+        // Inicializar currentResponse se não existir
         const conversation = window.conversations[window.conversaAtual.id];
         if (!conversation.currentResponse) conversation.currentResponse = '';
+        
+        // Acumular o fragmento
         conversation.currentResponse += fragmento;
         
-        // Atualizar o conteúdo usando DOMPurify e marked para renderizar Markdown
+        // Usar importação dinâmica para renderizar markdown em tempo real
         try {
-            const sanitizedHTML = DOMPurify.sanitize(marked.parse(conversation.currentResponse));
-            messageContent.innerHTML = sanitizedHTML;
-            
-            // Melhorar blocos de código
-            melhorarBlocosCodigo(streamingMessage);
-            
-            // Rolar para o final
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const { renderStreamingMessage } = window.messageRenderer || { renderStreamingMessage: (text) => text };
+            const renderedHtml = renderStreamingMessage(conversation.currentResponse);
+            messageContent.innerHTML = renderedHtml;
         } catch (error) {
-            // Fallback simples se houver erro na renderização de markdown
-            messageContent.textContent = conversation.currentResponse;
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            // Fallback para texto simples se houver erro
+            messageContent.innerHTML = `<p>${conversation.currentResponse}</p>`;
         }
+        
+        // Melhorar blocos de código quando apropriado
+        setTimeout(() => {
+            if (typeof window.melhorarBlocosCodigo === 'function') {
+                window.melhorarBlocosCodigo(streamingMessage);
+            }
+        }, 100);
+        
+        // Rolar para o final
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 }
 
@@ -281,4 +287,3 @@ const melhorarBlocosCodigo = window.melhorarBlocosCodigo || function() {};
 const carregarConversa = window.carregarConversa || function() {};
 const atualizarListaConversas = window.atualizarListaConversas || function() {};
 const mostrarTelaInicial = window.mostrarTelaInicial || function() {};
-

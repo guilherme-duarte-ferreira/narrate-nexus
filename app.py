@@ -17,7 +17,7 @@ from utils.chat_storage import (
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'sua_chave_secreta_aqui'
-socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 API_URL = "http://localhost:11434/v1/chat/completions"
 MODEL_NAME = "gemma2:2b"
@@ -348,3 +348,6 @@ def process_with_ai_stream(text, conversation_id=None):
     except Exception as e:
         print(f"[Debug] Erro inesperado: {str(e)}")
 
+if __name__ == '__main__':
+    print("Iniciando servidor com Eventlet em modo de desenvolvimento...")
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)

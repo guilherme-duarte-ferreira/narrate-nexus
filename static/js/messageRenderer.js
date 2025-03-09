@@ -17,9 +17,6 @@ export function renderMessage(text) {
 
     // Capturar ID da conversa atual para contexto
     const conversationId = window.conversaAtual?.id;
-    if (conversationId) {
-        console.log(`[DEBUG] Renderizando mensagem para conversa: ${conversationId}`);
-    }
 
     // Configurar highlight.js
     hljs.configure({
@@ -39,7 +36,6 @@ export function renderMessage(text) {
             try {
                 // Identificar a linguagem correta ou usar plaintext como fallback
                 const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
-                console.log('[DEBUG] Destacando código com linguagem:', language);
                 
                 // Aplicar highlight.js ao código
                 const highlighted = hljs.highlight(code, { language }).value;
@@ -47,7 +43,6 @@ export function renderMessage(text) {
                 // Retornar o código com a classe de linguagem para detecção posterior
                 return `<code class="language-${language} hljs">${highlighted}</code>`;
             } catch (error) {
-                console.error(`[ERRO] Erro ao destacar código: ${error.message}`);
                 return code;
             }
         }
@@ -56,7 +51,6 @@ export function renderMessage(text) {
     try {
         // Verificar DOMPurify
         if (typeof DOMPurify === 'undefined') {
-            console.error('[ERRO] DOMPurify não está definido.');
             return marked.parse(text);
         }
 
@@ -76,7 +70,6 @@ export function renderMessage(text) {
 
         // Parsear o Markdown
         const htmlContent = marked.parse(text);
-        console.log('[DEBUG] HTML antes da sanitização (primeiros 200 caracteres):', htmlContent.substring(0, 200));
 
         // Sanitizar o HTML preservando a estrutura
         const finalHtml = DOMPurify.sanitize(htmlContent, {
@@ -85,11 +78,8 @@ export function renderMessage(text) {
             ADD_ATTR: ['target', 'data-conversation-id'],
         });
         
-        console.log('[DEBUG] HTML após sanitização (primeiros 200 caracteres):', finalHtml.substring(0, 200));
-
         return finalHtml;
     } catch (error) {
-        console.error(`[ERRO] Erro ao renderizar markdown: ${error.message}`);
         return `<p>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
     }
 }

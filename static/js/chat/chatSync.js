@@ -99,6 +99,12 @@ function setupEventListeners() {
             // Se a aba estiver inativa, recarregar a conversa quando se tornar ativa
             if (document.visibilityState !== 'visible') {
                 marcarParaRecarregar(data.conversation_id);
+            } else {
+                // Finalizar o streaming removendo a classe streaming-message
+                const streamingMessage = document.querySelector('.streaming-message');
+                if (streamingMessage) {
+                    streamingMessage.classList.remove('streaming-message');
+                }
             }
         }
     });
@@ -182,15 +188,16 @@ function atualizarBufferDaConversa(conversationId, fragmento) {
 
 /**
  * Atualiza a mensagem que está sendo exibida em stream na conversa atual
+ * Versão melhorada para garantir que o streaming seja exibido em tempo real
  */
 function atualizarMensagemEmStream(fragmento) {
     const chatContainer = document.querySelector('.chat-container');
     if (!chatContainer) return;
     
-    // Encontrar a mensagem em streaming atual
+    // Encontrar a mensagem em streaming atual ou criar uma nova
     let streamingMessage = chatContainer.querySelector('.streaming-message');
     
-    // Se não existir, criar uma nova
+    // Se não existir, criar uma nova mensagem para streaming
     if (!streamingMessage) {
         streamingMessage = document.createElement('div');
         streamingMessage.className = 'message assistant streaming-message';
@@ -198,21 +205,28 @@ function atualizarMensagemEmStream(fragmento) {
         chatContainer.appendChild(streamingMessage);
     }
     
-    // Atualizar a mensagem
+    // Atualizar a mensagem com o novo fragmento
     const messageContent = streamingMessage.querySelector('.message-content');
     if (messageContent) {
         const conversation = window.conversations[window.conversaAtual.id];
+        if (!conversation.currentResponse) conversation.currentResponse = '';
         conversation.currentResponse += fragmento;
         
         // Atualizar o conteúdo usando DOMPurify e marked para renderizar Markdown
-        const sanitizedHTML = DOMPurify.sanitize(marked.parse(conversation.currentResponse));
-        messageContent.innerHTML = sanitizedHTML;
-        
-        // Melhorar blocos de código
-        melhorarBlocosCodigo(streamingMessage);
-        
-        // Rolar para o final
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+        try {
+            const sanitizedHTML = DOMPurify.sanitize(marked.parse(conversation.currentResponse));
+            messageContent.innerHTML = sanitizedHTML;
+            
+            // Melhorar blocos de código
+            melhorarBlocosCodigo(streamingMessage);
+            
+            // Rolar para o final
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+            // Fallback simples se houver erro na renderização de markdown
+            messageContent.textContent = conversation.currentResponse;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
     }
 }
 
@@ -267,3 +281,4 @@ const melhorarBlocosCodigo = window.melhorarBlocosCodigo || function() {};
 const carregarConversa = window.carregarConversa || function() {};
 const atualizarListaConversas = window.atualizarListaConversas || function() {};
 const mostrarTelaInicial = window.mostrarTelaInicial || function() {};
+

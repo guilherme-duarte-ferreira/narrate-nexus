@@ -109,7 +109,7 @@ def send_message():
             # Notificar todas as abas conectadas que a conversa foi atualizada
             socketio.emit('conversation_updated', {
                 'conversation_id': conversation_id
-            }, broadcast=True)
+            })
             print(f"[DEBUG] Resposta completa da IA salva na conversa: {conversation_id}")
 
     response = Response(generate_streamed_response(), content_type="text/event-stream")
@@ -133,7 +133,7 @@ def save_message():
         # Notificar clientes via WebSocket
         socketio.emit('conversation_updated', {
             'conversation_id': conversation_id
-        }, broadcast=True)
+        })
         
         return jsonify({'status': 'success', 'conversation_id': conversation_id})
     except Exception as e:
@@ -183,7 +183,7 @@ def process_youtube():
             # Notificar via WebSocket
             socketio.emit('conversation_updated', {
                 'conversation_id': conversation_id
-            }, broadcast=True)
+            })
             
         return jsonify({
             'text': formatted_response,
@@ -220,7 +220,7 @@ def handle_rename_conversation(conversation_id):
             socketio.emit('conversation_renamed', {
                 'conversation_id': conversation_id,
                 'new_title': new_title
-            }, broadcast=True)
+            })
             
             return jsonify({'success': True, 'new_title': new_title, 'conversation_id': conversation_id})
         else:
@@ -242,7 +242,7 @@ def handle_delete_conversation(conversation_id):
             # Notificar via WebSocket
             socketio.emit('conversation_deleted', {
                 'conversation_id': conversation_id
-            }, broadcast=True)
+            })
             
             return jsonify({'success': True, 'conversation_id': conversation_id})
         else:

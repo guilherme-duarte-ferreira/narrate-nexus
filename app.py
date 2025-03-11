@@ -1,3 +1,5 @@
+import init_eventlet
+
 from flask import Flask, render_template, request, jsonify, Response
 import json
 import os
@@ -47,6 +49,33 @@ def get_conversation(conversation_id):
         return jsonify({'error': 'Conversa não encontrada'}), 404
     except Exception as e:
         print(f"[ERRO] Falha ao obter conversa: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/get_conversation/<conversation_id>/<int:offset>/<int:limit>')
+def get_conversation_batch(conversation_id, offset, limit):
+    """Endpoint para carregar mensagens em lotes para lazy loading"""
+    try:
+        conversation = get_conversation_by_id(conversation_id)
+        if conversation:
+            messages = conversation['messages']
+            # Garantir que offset e limit estão dentro dos limites
+            offset = min(offset, len(messages))
+            end_index = min(offset + limit, len(messages))
+            batch = messages[offset:end_index]
+            
+            # Adicionar log para depuração
+            print(f"[DEBUG] Carregando lote: conversation_id={conversation_id}, offset={offset}, limit={limit}, retornando {len(batch)} mensagens, hasMore={end_index < len(messages)}")
+            
+            return jsonify({
+                'messages': batch,
+                'total': len(messages),
+                'hasMore': end_index < len(messages)
+            })
+        
+        print(f"[ERRO] Conversa não encontrada para batch loading: {conversation_id}")
+        return jsonify({'error': 'Conversa não encontrada'}), 404
+    except Exception as e:
+        print(f"[ERRO] Falha ao obter lote de mensagens: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/stream')
@@ -350,4 +379,4 @@ def process_with_ai_stream(text, conversation_id=None):
 
 if __name__ == '__main__':
     print("Iniciando servidor com Eventlet em modo de desenvolvimento...")
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000, use_reloader=False)

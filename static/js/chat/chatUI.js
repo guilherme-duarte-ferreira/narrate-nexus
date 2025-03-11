@@ -28,9 +28,15 @@ export function mostrarTelaInicial(welcomeScreen, chatContainer, inputContainer,
     // Limpar referência da conversa atual para evitar mistura de contextos
     window.conversaAtual = null;
     console.log('[DEBUG] Retornando para tela inicial, conversa atual limpa');
+    
+    // Remover qualquer listener de scroll
+    if (chatContainer._scrollListener) {
+        chatContainer.removeEventListener('scroll', chatContainer._scrollListener);
+        chatContainer._scrollListener = null;
+    }
 }
 
-export function adicionarMensagem(chatContainer, texto, tipo) {
+export function adicionarMensagem(chatContainer, texto, tipo, messageId = null) {
     // Verificar se o contêiner de chat existe
     if (!chatContainer) {
         console.error('[ERRO] Contêiner de chat não encontrado ao adicionar mensagem');
@@ -45,8 +51,19 @@ export function adicionarMensagem(chatContainer, texto, tipo) {
         console.log(`[DEBUG] Adicionando mensagem à conversa ${conversationId}, tipo: ${tipo}`);
     }
     
+    // Verificar se a mensagem com esse ID já existe
+    if (messageId && document.querySelector(`.message[data-message-id="${messageId}"]`)) {
+        console.log(`[DEBUG] Mensagem ${messageId} já existe, ignorando`);
+        return;
+    }
+    
     const mensagemDiv = document.createElement('div');
     mensagemDiv.className = `message ${tipo}`;
+    
+    // Se tiver um ID específico, adiciona como atributo de dados
+    if (messageId) {
+        mensagemDiv.dataset.messageId = messageId;
+    }
     
     // Associar ID da conversa para garantir isolamento
     if (conversationId) {
@@ -119,3 +136,29 @@ export function mostrarCarregamento(chatContainer) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
     return loadingDiv;
 }
+
+// Adicionar CSS para os novos elementos
+const style = document.createElement('style');
+style.textContent = `
+.loading-indicator {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.error-message {
+    padding: 1rem;
+    text-align: center;
+    color: var(--error);
+    font-weight: bold;
+}
+
+.empty-message {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+`;
+document.head.appendChild(style);
